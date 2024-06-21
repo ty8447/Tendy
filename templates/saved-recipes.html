@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recipes - Tendy</title>
+    <link rel="icon" type="image/png" href="/static/icons/tendy_logo.png">
+    <style>
+
+        html {
+            font-size: 16px; /* Set your preferred base font size here */
+        }
+
+        body {
+            background-color: {{ color_scheme['background_color'] }};
+            margin: 10px;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        .popup-menu {
+        z-index: 1001; /* Set a higher z-index to ensure the popup menu appears above the overlay */
+        }
+
+        .top-icons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        .icon {
+            width: 30px;
+            height: 40px;
+        }
+
+        .recipes-container {
+            flex-grow: 1;
+            overflow-y: scroll; /* Always show scrollbar (even if content doesn't overflow) */
+            margin-top: 20px;
+            padding-left: 10px;
+            margin-right: 15px;
+            max-height: calc(100vh - 200px);
+        }
+
+        .recipe-name {
+            font-size: 20px;
+            display: flex;
+            align-items: center; /* Vertically center the items */
+            gap: 10px; /* Adjust the gap between the icon and name as needed */
+        }
+
+        .recipe-item {
+            margin: 10px 10px;
+            padding: 15px;
+            position: relative;
+            background-color: #e0c28e;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        .search-bar {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+            width: 70%;
+        }
+
+        .add-custom-button {
+            background-color: #e0c28e;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-left: 10px;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .add-custom-button:hover {
+            background-color: #ad956d;
+        }
+
+        /* Add styles for the clickable recipe items */
+        .recipe-menu-item {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            background-color: #e0c28e; /* Set the background color */
+            color: white; /* Set text color to white */
+        }
+
+        /* Style the recipe items on hover */
+        .recipe-menu-item:hover {
+            background-color: #ad956d;
+        }
+
+        .recipe-item.selected {
+            background-color: #ad956d; /* Change background color to indicate selection */
+            transform: translateX(30px); /* Apply a slight shift to selected items */
+        }
+
+        .filter-button {
+            background-color: #e0c28e;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .filter-button:hover {
+            background-color: #ad956d;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+            z-index: 999; /* Place the overlay above other content */
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .filter-menu {
+            background-color: white; /* Add a white background */
+            padding: 20px; /* Add some padding to the filter menu */
+            border-radius: 10px; /* Add rounded corners */
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3); /* Add a shadow effect */
+            display: none; /* Initially hide the filter menu */
+            z-index: 1000; /* Place the filter menu above the overlay */
+        }
+
+        /* Style for the glass icon */
+        .glass-icon {
+            width: 40px; /* Set the width to your desired size */
+            height: 40px; /* Set the height to your desired size */
+        }
+
+        /* Style for the recipe name heading */
+        .glass-and-name-container h3 {
+            font-size: 2em; /* Adjust the font size as needed */
+            color: #333; /* Set the color for the recipe name */
+        }
+
+
+
+        /* Add styles for filter menu buttons */
+        .filter-menu button {
+            background-color: #e0c28e;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+
+        /* Style the Apply button on hover */
+        .filter-menu button:hover {
+            background-color: #ad956d;
+        }
+
+        /* Style the Cancel button differently */
+        .filter-menu #cancel-button {
+            background-color: #ccc;
+            color: black;
+        }
+
+        /* Style the Cancel button on hover */
+        .filter-menu #cancel-button:hover {
+            background-color: #999;
+        }
+
+        .filter-menu label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        @keyframes shrinkAndTranslate {
+            to {
+                transform: translateX(30px);
+                width: calc(100% - 60px); /* Shrink width */
+            }
+        }
+
+        @keyframes resetAnimation {
+            to {
+                transform: none;
+                width: auto;
+            }
+        }
+
+        /* Default style for the indicator */
+.recipe-item .indicator-placeholder {
+    display: none; /* Initially hide the placeholder */
+}
+
+/* Style the indicator when in editing mode */
+.recipe-item.selected .indicator-placeholder {
+    display: block;
+}
+
+/* Indicator styles */
+.recipe-item .indicator {
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #ccc; /* Default color for unselected items */
+    transition: background-color 0.3s;
+}
+
+        .recipe-details {
+    display: none; /* Initially hide the recipe details */
+}
+
+/* Show the recipe details when the show-details class is present */
+.recipe-details-wrapper.show-details .recipe-details {
+    display: block;
+}
+
+.detail-name {
+    font-weight: bold; /* Make detail names bold */
+    font-size: 18px; /* Set font size for detail names */
+    color: black; /* Set color for detail names */
+}
+
+/* Style for detail text */
+.detail-text {
+    font-size: 16px;
+    color: black; /* Set color for detail text */
+}
+
+/* Indicator style when item is selected */
+.recipe-item.selected .indicator {
+    background-color: red; /* Color for selected items */
+}
+
+        /* Adjust font sizes for smaller screens (phones) */
+@media (max-width: 1440px) {
+    html {
+        font-size: 18px; /* Increase base font size */
+    }
+
+    .recipe-name h3 {
+        font-size: 1.7em; /* Increase relative font size */
+        font-family: 'Caveat', cursive;
+    }
+
+    .detail-text {
+        font-size: 15px; /* Set the desired font size for .detail-text */
+    }
+
+    /* Adjust other font sizes as needed */
+}
+
+
+    </style>
+</head>
+<body>
+    <div id="content" class="fade-in {% if page != 'recipes' %}fade-out{% endif %}">
+        <div class="top-icons">
+            <a href="/">
+                <img src="/static/icons/home.png" alt="Home" class="icon" style="padding: 10px;">
+            </a>
+            <a href="/settings">
+                <img src="/static/icons/settings.svg" alt="Settings" class="icon" style="width: 60px; height: 60px; padding: 10px; margin-right: 30px;">
+            </a>
+        </div>
+        <div class="search-container">
+            <button class="add-custom-button" id="add-from-recipes">Add from Recipes</button>
+            <input type="text" class="search-bar" placeholder="Search...">
+            <!--<button class="filter-button" id="filter-button">Filter</button>-->
+            <button class="add-custom-button" id="edit-recipe-book">Edit Recipe Book</button>
+            <button class="add-custom-button delete-button" id="delete-selected" style="display: none">Delete Selected</button> <!-- Add this button -->
+        </div>
+        <div class="recipes-container"></div>
+    </div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Selectors
+    const searchInput = document.querySelector('.search-bar');
+    const addFromRecipesButton = document.getElementById('add-from-recipes');
+    const deleteButton = document.getElementById('delete-selected');
+    const editRecipeBookButton = document.getElementById('edit-recipe-book');
+    const recipeList = document.querySelector('.recipes-container');
+    const overlay = createOverlay();
+
+    // Variables
+    let isEditMode = false;
+    let savedRecipes = getSavedRecipes();
+    const detailedRecipes = {{ detailed_recipes_data|default([])|tojson | safe }};
+    console.log("detailed_recipes_data:", {{ detailed_recipes_data|tojson | safe }});
+
+
+	// Function to show the overlay
+    function showOverlay() {
+        overlay.style.display = 'block';
+    }
+
+    // Function to hide the overlay
+    function hideOverlay() {
+        overlay.style.display = 'none';
+    }
+
+    // Attach event listeners
+    searchInput.addEventListener('input', handleSearch);
+    addFromRecipesButton.addEventListener('click', handleAddFromRecipes);
+    editRecipeBookButton.addEventListener('click', toggleEditMode);
+    deleteButton.addEventListener('click', handleDeleteSelected);
+
+    // Initialize the recipe list
+    updateMainList();
+
+    function createOverlay() {
+        const overlay = document.createElement('div');
+        overlay.classList.add('overlay');
+        overlay.style.display = 'none';
+        document.body.appendChild(overlay);
+        return overlay;
+    }
+
+    function getSavedRecipes() {
+        const cookieValue = getCookie('saved-recipes-list');
+        return JSON.parse(cookieValue) || [];
+    }
+
+    function getCookie(name) {
+        const cookies = document.cookie.split('; ');
+        for (const cookie of cookies) {
+            const [cookieName, cookieValue] = cookie.split('=');
+            if (cookieName === name) {
+                return cookieValue;
+            }
+        }
+        return null;
+    }
+
+
+
+    function setCookie(name, value) {
+        document.cookie = `${name}=${value};path=/`;
+    }
+
+    function updateMainList() {
+        recipeList.innerHTML = ''; // Clear the current list
+		console.log(savedRecipes);
+		console.log('Detailed Recipes:', detailedRecipes);
+
+		// Iterate through savedRecipes and find matching items in detailedRecipes
+		savedRecipes.forEach(savedRecipeName => {
+			const matchingRecipe = detailedRecipes.find(recipe => recipe.name === savedRecipeName);
+			if (matchingRecipe) {
+				const recipeItem = createRecipeItem(matchingRecipe);
+				recipeList.appendChild(recipeItem);
+				console.log(`Found matching item for "${savedRecipeName}"`);
+			} else {
+				console.log(`No matching item found for "${savedRecipeName}"`);
+			}
+		});
+
+        updateNoRecipesMessageVisibility(); // Update the no-recipes message
+    }
+
+    function createRecipeItem(recipe) {
+        // Create the recipe item container
+        const recipeItem = document.createElement('div');
+        recipeItem.classList.add('recipe-item');
+
+        // Create the indicator placeholder
+        const indicatorPlaceholder = document.createElement('div');
+        indicatorPlaceholder.classList.add('indicator-placeholder');
+
+        // Create the indicator element
+        const indicator = document.createElement('div');
+        indicator.classList.add('indicator');
+
+        // Create the recipe name container
+        const recipeNameContainer = document.createElement('div');
+        recipeNameContainer.classList.add('recipe-name');
+
+        // Create the glass icon
+        const glassIcon = document.createElement('img');
+        glassIcon.src = `/static/icons/${recipe.glass}.svg`;
+        glassIcon.alt = recipe.glass;
+        glassIcon.classList.add('glass-icon');
+
+        // Create the recipe name heading
+        const name = document.createElement('h3');
+        name.textContent = recipe.name;
+
+
+        // Append the glass icon and recipe name to the recipe name container
+        recipeNameContainer.appendChild(glassIcon);
+        recipeNameContainer.appendChild(name);
+
+        // Create the recipe details wrapper
+        const recipeDetailsWrapper = document.createElement('div');
+        recipeDetailsWrapper.classList.add('recipe-details-wrapper');
+
+        // Create the recipe details container
+        const recipeDetails = document.createElement('div');
+        recipeDetails.classList.add('recipe-details');
+
+        // Create and add the description
+        const description = createRecipeDetailElement('Description', recipe.description, 'recipe-description');
+        recipeDetails.appendChild(description);
+
+        // Create and add the ingredients
+        const ingredientsHeader = createRecipeDetailElement('Ingredients', '', 'recipe-ingredient-header');
+        recipeDetails.appendChild(ingredientsHeader);
+
+        const ingredientsList = createIngredientsList(recipe.ingredients);
+        recipeDetails.appendChild(ingredientsList);
+
+        // Create and add portions
+        const portions = createRecipeDetailElement('Portions', recipe.portions, 'recipe-portions');
+        recipeDetails.appendChild(portions);
+
+        // Create and add instructions
+        const instructions = createRecipeDetailElement('Instructions', recipe.instructions, 'recipe-instructions');
+        recipeDetails.appendChild(instructions);
+
+        // Create and add glass
+        const glass = createRecipeDetailElement('Glass', recipe.glass, 'recipe-glass');
+        recipeDetails.appendChild(glass);
+
+
+        // Append the indicator to the indicator placeholder
+        indicatorPlaceholder.appendChild(indicator);
+
+        // Append the indicator placeholder, recipe name container, and recipe details to the recipe item container
+        recipeItem.appendChild(indicatorPlaceholder);
+        recipeItem.appendChild(recipeNameContainer);
+        recipeDetailsWrapper.appendChild(recipeDetails); // Append recipeDetails to recipeDetailsWrapper
+        recipeItem.appendChild(recipeDetailsWrapper);
+
+        // Attach a click event listener to the recipe item
+        recipeItem.addEventListener('click', () => handleRecipeItemClick(recipeItem));
+        console.log("Added Click Listener at ~465");
+        // Return the generated recipe item
+        return recipeItem;
+    }
+
+        // Function to create an ingredients list
+    function createIngredientsList(ingredients) {
+        const ingredientsContainer = document.createElement('div');
+        ingredientsContainer.classList.add('recipe-ingredients');
+
+        const ul = document.createElement('ul');
+        ingredients.forEach(ingredient => {
+            const li = document.createElement('li');
+            li.textContent = ingredient;
+            ul.appendChild(li);
+        });
+
+        ingredientsContainer.appendChild(ul);
+        return ingredientsContainer;
+    }
+
+    function createRecipeDetailElement(detailName, detailText, className) {
+    // Create a container for the detail
+    const detailContainer = document.createElement('div');
+    detailContainer.classList.add('detail-' + className); // Modify this line
+
+    // Create and style the detail name
+    const nameElement = document.createElement('div');
+    nameElement.textContent = detailName + ': ';
+    nameElement.classList.add('detail-name'); // Modify this line
+    detailContainer.appendChild(nameElement);
+
+    // Create and style the detail text
+    const textElement = document.createElement('div');
+    textElement.textContent = detailText;
+    textElement.classList.add('detail-text'); // Modify this line
+    detailContainer.appendChild(textElement);
+
+    return detailContainer;
+}
+
+
+
+    function createRecipeElement(elementType, className, textContent) {
+        const element = document.createElement(elementType);
+        element.classList.add(className);
+        element.textContent = textContent;
+        return element;
+    }
+
+    function handleSearch() {
+        const searchText = searchInput.value.toLowerCase();
+        recipeList.querySelectorAll('.recipe-item').forEach(item => {
+            const recipeName = item.querySelector('.recipe-name').textContent.toLowerCase();
+            item.style.display = recipeName.includes(searchText) ? 'block' : 'none';
+        });
+    }
+
+    function handleAddFromRecipes() {
+        if (isEditMode) toggleEditMode();
+        showOverlay();
+
+        fetch('/get-available-recipes')
+            .then(response => response.json())
+            .then(data => {
+                const recipesToAdd = data.addable_recipes.filter(recipe => !savedRecipes.includes(recipe));
+
+                if (recipesToAdd.length > 0) {
+                    const popupMenu = createPopup(recipesToAdd);
+
+                    overlay.appendChild(popupMenu);
+
+                    // Close the overlay and popup menu when clicking outside
+                    overlay.addEventListener('click', () => {
+                        overlay.style.display = 'none';
+                        popupMenu.style.display = 'none';
+                        addFromRecipesButton.addEventListener('click', handleAddFromRecipes);
+                    });
+                } else {
+                    const noMoreRecipesText = document.createElement('div');
+                    noMoreRecipesText.textContent = 'There are no more recipes to add!';
+                    popupMenu.appendChild(noMoreRecipesText);
+                }
+            });
+    }
+
+    function createPopup(recipes) {
+        const popupMenu = document.createElement('div');
+        popupMenu.classList.add('popup-menu');
+        popupMenu.style.position = 'absolute';
+        popupMenu.style.top = '50%';
+        popupMenu.style.left = '50%';
+        popupMenu.style.transform = 'translate(-50%, -50%)';
+        popupMenu.style.backgroundColor = 'white';
+        popupMenu.style.padding = '20px';
+        popupMenu.style.borderRadius = '10px';
+        popupMenu.style.boxShadow = '0px 0px 10px rgba(0, 0, 0, 0.3)';
+
+        const headerText = document.createElement('div');
+        headerText.textContent = 'Select a recipe to add:';
+        headerText.style.fontWeight = 'bold';
+        popupMenu.appendChild(headerText);
+
+        const recipeList = document.createElement('ul');
+        recipeList.style.maxHeight = '300px';
+        recipeList.style.overflowY = 'auto';
+
+        recipes.forEach(recipe => {
+            const recipeItem = document.createElement('li');
+            recipeItem.textContent = recipe;
+            recipeItem.classList.add('recipe-menu-item');
+            recipeItem.addEventListener('click', () => handleAddRecipeToMainList(recipe));
+            console.log("Added Click Listener at ~577");
+            recipeList.appendChild(recipeItem);
+        });
+
+        popupMenu.appendChild(recipeList);
+
+        return popupMenu;
+    }
+
+    function handleAddRecipeToMainList(recipeName) {
+        if (!savedRecipes.includes(recipeName)) {
+            savedRecipes.push(recipeName);
+            setCookie('saved-recipes-list', JSON.stringify(savedRecipes));
+            updateMainList();
+        }
+
+        overlay.style.display = 'none';
+    }
+
+    function handleDeleteSelected() {
+        recipeList.querySelectorAll('.recipe-item.selected').forEach(item => {
+            const recipeName = item.querySelector('.recipe-name').textContent;
+            const indexToRemove = savedRecipes.indexOf(recipeName);
+
+            if (indexToRemove !== -1) {
+                savedRecipes.splice(indexToRemove, 1);
+                setCookie('saved-recipes-list', JSON.stringify(savedRecipes));
+            }
+
+            item.remove();
+        });
+
+        updateNoRecipesMessageVisibility();
+    }
+
+    function toggleEditMode() {
+    // Remove all previous event listeners from recipe items
+    recipeList.querySelectorAll('.recipe-item').forEach(item => {
+    item.removeEventListener('click', handleRecipeItemClick);
+    console.log("Removed Listener")
+    });
+    isEditMode = !isEditMode;
+    editRecipeBookButton.textContent = isEditMode ? 'Done Editing' : 'Edit Recipe Book';
+
+    // Check if there are selected items
+    const selectedItems = recipeList.querySelectorAll('.recipe-item.selected');
+
+    // Update the display style of the delete button based on whether items are selected
+    deleteButton.style.display = selectedItems.length > 0 && isEditMode ? 'block' : 'none';
+
+
+
+    // Toggle the event listener for clicking on items
+    recipeList.querySelectorAll('.recipe-item').forEach(item => {
+        if (isEditMode) {
+            //item.addEventListener('click', () => handleRecipeItemClick(item)); // Pass "item" to the function
+            //console.log("Added Click Listener at ~633");
+        } else {
+            item.removeEventListener('click', () => handleRecipeItemClick(item));
+        }
+    });
+}
+
+function handleRecipeItemClick(item) { // Include "item" as a parameter
+    console.log('Clicked item:', item);
+    console.log('Item parent:', item.parentElement);
+    const detailsWrapper = item.querySelector('.recipe-details-wrapper');
+    console.log(detailsWrapper);
+
+    if (detailsWrapper) {
+
+        if (isEditMode) {
+            console.log("Clicked Item in Edit Mode!")
+            item.classList.toggle('selected');
+            const selectedItems = recipeList.querySelectorAll('.recipe-item.selected');
+            console.log(selectedItems);
+            deleteButton.style.display = selectedItems.length > 0 ? 'block' : 'none';
+        } else {
+            console.log("Showing Wrapper");
+            detailsWrapper.classList.toggle('show-details');
+        }
+    }
+}
+
+
+
+
+
+
+    function updateNoRecipesMessageVisibility() {
+        const noRecipesMessage = document.querySelector('.no-recipes-message');
+        if (savedRecipes.length === 0) {
+            if (!noRecipesMessage) {
+                createNoRecipesMessage(recipeList);
+            }
+            editRecipeBookButton.style.display = 'none';
+            deleteButton.style.display = 'none';
+        } else {
+            if (noRecipesMessage) {
+                noRecipesMessage.remove();
+            }
+            editRecipeBookButton.style.display = 'block';
+        }
+    }
+
+    function createNoRecipesMessage(recipeList) {
+        const noRecipesMessage = document.createElement('h1');
+        noRecipesMessage.textContent = 'You have no saved recipes!';
+        noRecipesMessage.classList.add('no-recipes-message');
+        noRecipesMessage.style.display = 'block';
+        noRecipesMessage.style.fontSize = '20px';
+        noRecipesMessage.style.textAlign = 'center';
+        noRecipesMessage.style.marginTop = '20px';
+        recipeList.appendChild(noRecipesMessage);
+    }
+});
+
+        // Function to get a cookie by name
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
+
+    function saveCurrentPage() {
+            // Store the current page's URL in session storage
+            sessionStorage.setItem("currentPage", window.location.href);
+        }
+</script>
+</body>
+</html>

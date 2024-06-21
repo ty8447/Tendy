@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Ingredients - Tendy</title>
+    <link rel="icon" type="image/png" href="/static/icons/tendy_logo.png">
+    <style>
+        body {
+            background-color: {{ color_scheme['background_color'] }};
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #content {
+            max-height: calc(100vh - 20px); /* Set a maximum height for the content */
+            overflow-y: auto; /* Enable vertical scrolling when content overflows */
+        }
+
+        /* Customize the scrollbar */
+        #content::-webkit-scrollbar {
+          width: 12px; /* Set the width of the scrollbar */
+        }
+
+        /* Customize the scrollbar thumb (the draggable part) */
+        #content::-webkit-scrollbar-thumb {
+          background-color: #555; /* Color of the thumb */
+          border-radius: 10px; /* Rounded corners for the thumb */
+        }
+
+        /* Customize the scrollbar track (the area behind the thumb) */
+        #content::-webkit-scrollbar-track {
+          background-color: #ddd; /* Color of the track */
+          border-radius: 10px; /* Rounded corners for the track */
+        }
+
+        .ingredients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 30px;
+            padding: 10px;
+            margin-right: 40px;
+        }
+
+        .ingredient-item {
+            font-size: 16px;
+            margin: 10px;
+            text-align: center;
+            padding: 10px;
+            width: 100%;
+            position: relative;
+            background-color: #e0c28e;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+
+        .selected-item {
+            background-color: #7a694c;
+        }
+
+        .liquor-abv,
+        .liquor-type {
+            font-size: 14px; /* Adjust font size as needed */
+        }
+
+        .liquor-details {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ingredient-item:hover {
+            background-color: #ad956d;
+        }
+
+        .abv-type-hyphen {
+            padding: 0 5px;
+        }
+
+        .top-icons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .icon {
+            width: 40px;
+            height: 50px;
+            color: {{ color_scheme['secondary_color'] }};
+        }
+
+        h2, hr {
+            text-align: center;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 15px;
+        }
+
+        .header-center {
+            justify-content: center;
+            align-items: center;
+
+        }
+
+        .header-offcenter {
+            align-items: center;
+
+
+        }
+
+        .header {
+            font-size: 40px;
+            margin: 0;
+        }
+
+        .add-button {
+            background-color: #919294;
+            color: black;
+            border: none;
+            margin-left: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 18px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s, width 0.3s, font-size 0.3s;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .add-button:hover {
+            background-color: #ad956d;
+            width: auto;
+            font-size: 20px;
+        }
+
+        .list-heading {
+            text-align: left;
+            margin: 20px 0 10px 10px;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .icon {
+                width: 20px;
+                height: 20px;
+            }
+
+            .ingredients-container {
+                max-height: 200px;
+            }
+
+            .ingredient-item {
+                font-size: 14px;
+            }
+        }
+
+        .fade-in {
+            opacity: 1 !important;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .fade-out {
+            opacity: 0 !important;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+.selected {
+    background-color: blue;
+}
+
+.item-details {
+    flex-grow: 1; /* Expand the details to take available space */
+    display: flex;
+    align-items: center;
+    padding-left: 10px; /* Add some left padding */
+}
+
+.no-items-message {
+    font-size: 20px;
+    text-align: left;
+    margin-left: 15px;
+    display: flex
+}
+
+
+
+    </style>
+</head>
+<body>
+    <div id="content" class="fade-in">
+        <div class="top-icons">
+            <div>
+                <a href="/">
+                    <img src="/static/icons/home.png" alt="Home" class="icon" style="padding: 10px;">
+                </a>
+            </div>
+            <div>
+                <a href="/settings" onclick="saveCurrentPage()">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+                    <style>
+                        .st0{fill: currentcolor;}
+                        .st1{fill:none;stroke: currentcolor;stroke-width:133.0258;stroke-miterlimit:10;stroke-dasharray:125.2008,140.8509;}
+                    </style>
+                    <g>
+                        <g>
+                            <path class="st0" d="M499.77,226.26c73.12,0,141.86,28.47,193.56,80.18S773.5,426.88,773.5,500s-28.47,141.86-80.17,193.56
+                                s-120.44,80.17-193.56,80.17s-141.86-28.47-193.56-80.17S226.03,573.12,226.03,500s28.47-141.86,80.18-193.56
+                                S426.65,226.26,499.77,226.26 M499.77,93.24C275.12,93.24,93.01,275.35,93.01,500s182.11,406.76,406.76,406.76
+                                S906.53,724.65,906.53,500S724.41,93.24,499.77,93.24L499.77,93.24z"/>
+                        </g>
+                        <circle class="st1" cx="499.77" cy="500" r="427.27"/>
+                    </g>
+                </svg>
+                </a>
+            </div>
+        </div>
+       <div class="header-container">
+           <div class="header-center">
+            <h2 class="header">Our Bar</h2>
+           </div>
+                <button id="edit-button" class="add-button edit-button">Edit Bar</button>
+                <button id="global-delete-button" class="add-button" style="display: none;">Delete Selected</button>
+            </div>
+       </div>
+
+        <hr style="width: 50vw; max-width: 50%; text-align: center; margin: 10px auto; border-top: 1px solid #000;">
+        <div class="list-heading">
+            Liquors (<span id="liquor-count">{{ current_liquors|length }}</span>)
+            <a href="/add-liquor"><button class="add-button" data-item-type="liquor">+</button></a>
+        </div>
+
+<div class="ingredients-grid">
+    {% if current_liquors %}
+    {% for liquor in current_liquors %}
+    <div class="ingredient-item" data-item-id="{{ liquor.id }}" data-item-type="liquor">
+        <h3><div class="liquor-name">{{ liquor.name }}</div></h3>
+        <div class="liquor-details">
+            {% if liquor.abv %}
+                <div class="liquor-abv">{{ liquor.abv }}</div>
+                <div class="abv-type-hyphen"> - </div>
+            {% endif %}
+            <div class="liquor-type">{{ liquor.type }}</div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <h1 id="no-liquor-message" class="no-items-message">There are no liquors added!</h1>
+    {% endif %}
+</div>
+        </div>
+            <div class="list-heading">
+                Mixers (<span id="mixer-count">{{ current_mixers|length }}</span>)
+                <a href="/add-mixer"><button class="add-button" data-item-type="mixer">+</button></a>
+            </div>
+            <div class="ingredients-grid">
+        {% if current_mixers %}
+            {% for mixer in current_mixers %}
+            <div class="ingredient-item" data-item-id="{{ mixer.id }}" data-item-type="mixer">
+                <h3><div class="mixer-name">{{ mixer.name }}</div></h3>
+                <div class="mixer-type">{{ mixer.type }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+           <h1 id="no-mixer-message" class="no-items-message">There are no mixers added!</h1>
+        {% endif %}
+    </div>
+
+        <div class="list-heading">
+            Garnishes (<span id="garnish-count">{{ current_garnishes|length }}</span>)
+            <a href="/add-garnish"><button class="add-button" data-item-type="garnish">+</button></a>
+        </div>
+            <div class="ingredients-grid">
+        {% if current_garnishes %}
+            {% for garnish in current_garnishes %}
+            <div class="ingredient-item" data-item-id="{{ garnish.id }}" data-item-type="garnish">
+                <h3><div class="garnish-name">{{ garnish.name }}</div></h3>
+                <div class="garnish-type">{{ garnish.type }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+           <h1 id="no-garnish-message" class="no-items-message">There are no garnishes added!</h1>
+        {% endif %}
+    </div>
+    <script>
+  let editingBar = false; // Boolean to track whether editing mode is active
+const editButton = document.getElementById('edit-button');
+const deleteButton = document.getElementById('global-delete-button');
+const content = document.querySelector('body');
+let selectedItems = [];
+
+        // Function to get a cookie by name
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
+
+        content.style.maxHeight = 'calc(100vh - 20px)';
+        content.style.overflowY = 'auto';
+
+function toggleEditingMode() {
+    editingBar = !editingBar;
+    if (editingBar) {
+        editButton.textContent = 'Done';
+        deleteButton.style.display = selectedItems.length > 0 ? 'inline-block' : 'none';
+    } else {
+        editButton.textContent = 'Edit Bar';
+        deleteButton.style.display = 'none';
+        const ingredientItems = document.querySelectorAll('.ingredient-item');
+        ingredientItems.forEach(item => {
+                item.classList.remove('selected-item');
+        });
+    }
+    updateSelectedItems();
+}
+
+function updateSelectedItems() {
+    selectedItems = document.querySelectorAll('.ingredient-item.selected-item');
+    console.log(selectedItems);
+    deleteButton.style.display = selectedItems.length > 0 ? 'inline-block' : 'none';
+    console.log("Updating Count");
+    selectedItems.forEach(item => {
+        item.classList.add('selected-item');
+    });
+}
+
+// Event listener for clicking on ingredient items
+const ingredientItems = document.querySelectorAll('.ingredient-item');
+ingredientItems.forEach(item => {
+    item.addEventListener('click', () => {
+        if (editingBar) {
+            item.classList.toggle('selected-item');
+            updateSelectedItems();
+        }
+    });
+});
+
+function deleteSelectedItems() {
+    console.log("Function Called");
+    console.log(selectedItems);
+    selectedItems.forEach(item => {
+        const itemId = item.getAttribute('data-item-id'); // Get the item's unique ID from data attribute
+        const itemType = item.getAttribute('data-item-type');
+
+        // Handle the deletion logic from the database
+        deleteDatabaseItem(itemId, itemType);
+
+        // Remove the selected items visually
+        item.remove();
+
+        updateItemCount(itemType, -1); // Decrease the count by 1
+
+
+
+        // Check if the count has become zero after deletion
+        const itemCount = parseInt(document.getElementById(`${itemType}-count`).textContent);
+        if (itemCount === 0) {
+            showNoItemsMessage(itemType);
+        }
+    });
+
+    selectedItems = []; // Clear selected items array
+    toggleEditingMode(); // Exit editing mode
+
+    // Check if the liquor, mixer, and garnish lists are empty and show messages if needed
+    const liquorCount = parseInt(document.getElementById('liquor-count').textContent);
+    const mixerCount = parseInt(document.getElementById('mixer-count').textContent);
+    const garnishCount = parseInt(document.getElementById('garnish-count').textContent);
+
+    if (liquorCount === 0) {
+        showNoItemsMessage('liquor');
+    }
+
+    if (mixerCount === 0) {
+        showNoItemsMessage('mixer');
+    }
+
+    if (garnishCount === 0) {
+        showNoItemsMessage('garnish');
+    }
+}
+
+
+// Function to delete an item from the database based on its ID and type
+function deleteDatabaseItem(itemId, itemType) {
+    // Send a POST request to your Flask route to delete the item from the database
+    fetch('/delete-selected', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            item_id: itemId,
+            item_type: itemType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Handle the response if needed
+        console.log(data);
+    })
+    .catch(error => {
+        console.error('Error deleting item:', error);
+    });
+}
+// Function to update item counts
+function updateItemCount(itemType, change) {
+    const countElement = document.getElementById(`${itemType}-count`);
+    const currentCount = parseInt(countElement.textContent);
+    const newCount = currentCount + change;
+
+    // Update the count element
+    countElement.textContent = newCount;
+
+    // Hide or show "Edit Bar" button based on item counts
+    const liquorCount = parseInt(document.getElementById('liquor-count').textContent);
+    const mixerCount = parseInt(document.getElementById('mixer-count').textContent);
+    const garnishCount = parseInt(document.getElementById('garnish-count').textContent);
+    const editButton = document.getElementById('edit-button');
+    if (liquorCount === 0 && mixerCount === 0 && garnishCount === 0) {
+        editButton.style.display = 'none';
+    } else {
+        editButton.style.display = 'inline-block';
+    }
+}
+
+function showNoItemsMessage(itemType) {
+    const noItemsMessage = document.getElementById(`no-${itemType}-message`);
+    if (noItemsMessage) {
+        noItemsMessage.style.display = 'flex';
+    }
+}
+
+
+    // Add an event listener for DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    const liquorCount = parseInt(document.getElementById('liquor-count').textContent);
+    const mixerCount = parseInt(document.getElementById('mixer-count').textContent);
+    const garnishCount = parseInt(document.getElementById('garnish-count').textContent);
+    const editButton = document.querySelector('.edit-button');
+    if (liquorCount === 0 && mixerCount === 0) {
+        editButton.style.display = 'none';
+    } else {
+        editButton.style.display = 'inline-block';
+    }
+
+    // Dynamic text change for "+ Add Item" button
+    const addButtonElements = document.querySelectorAll('.add-button');
+    addButtonElements.forEach(button => {
+        const itemType = button.getAttribute('data-item-type');
+        const originalText = '+';
+        const hoverText = `+ Add ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} Item`;
+
+        button.textContent = originalText;
+
+        button.addEventListener('mouseenter', () => {
+            button.textContent = hoverText;
+            button.style.width = button.scrollWidth + 'px'; // Set width to match the content
+        });
+
+        button.addEventListener('mouseleave', () => {
+            button.textContent = originalText;
+            button.style.width = ''; // Reset width to auto
+        });
+    });
+});
+
+editButton.addEventListener('click', () => {
+    toggleEditingMode();
+});
+
+deleteButton.addEventListener('click', () => {
+    deleteSelectedItems();
+    console.log("Button Pressed");
+});
+
+        function saveCurrentPage() {
+            // Store the current page's URL in session storage
+            sessionStorage.setItem("currentPage", window.location.href);
+        }
+
+</script>
+</body>
+</html>

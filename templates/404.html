@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Page Not Found - Custom 404</title>
+    <link rel="icon" type="image/png" href="/static/icons/tendy_logo.png">
+    <style>
+        body {
+            background-color: {{ color_scheme['background_color'] }};
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #content {
+            text-align: center;
+            padding: 10px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center vertically */
+            align-items: center; /* Center horizontally */
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 3.5vh;
+        }
+
+        .fade-in {
+            opacity: 1;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .fade-out {
+            opacity: 0;
+            pointer-events: none; /* Disable interaction on hidden content */
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .menu-container {
+            display: flex;
+            justify-content: center; /* Center buttons horizontally */
+            align-items: center; /* Center buttons vertically */
+            text-align: center;
+        }
+
+        .menu-button {
+            background-color: #e0c28e;
+            color: white;
+            border: none;
+            padding: 2vh 4vw;
+            position: relative; /* Allow absolute positioning of the icon */
+            text-align: center;
+            text-decoration: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            display: inline-block; /* Display buttons side by side */
+            font-size: 2.5vh;
+            margin: 1vh;
+            cursor: pointer;
+            border-radius: 2vh;
+            max-width: 25vw;
+            color: black; /* Change text color here */
+            white-space: normal; /* Allow text to wrap */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .logo img {
+            width: 60vh;
+            max-width: 80vw;
+            text-align: center;
+            height: auto;
+            margin-top: -10vh; /* Adjust margin to create space between logo and text */
+            margin-bottom: 4vh; /* Adjust margin to create space between logo and text */
+        }
+
+        #menu {
+            margin-top: 2vh;
+            text-align: center;
+        }
+
+        #settings {
+            position: absolute;
+            top: 2vh;
+            right: 2vw;
+        }
+
+        .icon-container {
+            padding: 10px; /* Adjust padding as needed */
+            border-radius: 50%; /* Make it circular */
+        }
+
+        .icon {
+            width: 6vh;
+            height: 6vh;
+            margin-bottom: 5px; /* Adjust the spacing between icon and text */
+        }
+
+        /* Dynamically adjust font size based on button size */
+        @media (orientation: portrait) {
+            .menu-button {
+                font-size: min(4vh, 4vw);
+                white-space: normal; /* Allow text to wrap */
+            }
+
+            .menu-container {
+                display: flex;
+                justify-content: center; /* Center buttons horizontally */
+                align-items: center; /* Center buttons vertically */
+                text-align: center;
+            }
+
+            .popup {
+                padding: 10px; /* Increase padding for smaller devices */
+                font-size: 18px; /* Increase font size for smaller devices */
+                transform: translate(-50%, -50%) scale(2.2); /* Adjust the scale as needed */
+            }
+        }
+
+        @media (orientation: landscape) {
+            .logo {
+                margin-top: 1vh; /* Adjust margin for landscape mode */
+            }
+
+            .menu-container {
+                display: flex;
+                justify-content: center; /* Center buttons horizontally */
+                align-items: center; /* Center buttons vertically */
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .menu-container {
+                align-items: center;
+            }
+        }
+
+        /* Adjust font size for the text */
+        .menu-text {
+            font-size: 5vh;
+            margin-bottom: 2vh; /* Add margin between the text and the buttons */
+        }
+
+        .sub-text {
+            font-size: 3vh;
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #cccccc;
+            padding: 20px;
+            z-index: 1000;
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: popupAnimation 0.3s ease-in-out forwards; /* Animation */
+        }
+
+        .popup-title {
+            font-family: 'Roboto', sans-serif;
+            font-size: 24px; /* Larger font size for the title */
+            margin-bottom: 5px; /* Smaller margin below the title */
+        }
+
+        .popup-subtitle {
+            font-family: 'Roboto', sans-serif;
+            font-size: 18px; /* Slightly smaller font size for the subtitle */
+            margin-bottom: 10px;
+        }
+
+        .popup-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px; /* Same font size for the rest of the text */
+            margin-bottom: 10px;
+        }
+
+        .popup-button {
+            background-color: #8f7c59;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        /* Animation keyframes */
+        @keyframes popupAnimation {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8); /* Initial scale */
+                opacity: 0;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1); /* Full size */
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="content" class="fade-in">
+    <div class="logo">
+        <img src="/static/icons/tendy_mascot.png" alt="Tendy Logo" width="1000">
+    </div>
+    <div class="menu-text">
+        <h1>Oops! You've Strayed Off the Recipe...</h1>
+        <div class="sub-text">Looks like you're in uncharted cocktail territory!</div>
+        <div class="sub-text">Don't worry, Tendy will help you find your way back.</div>
+    </div>
+    <div id="menu" class="menu-container">
+        <a href="/" class="menu-button">
+            <div class="icon-container">
+                <img src="/static/icons/home.png" alt="Home" class="icon">
+            </div>
+            <span class="button-text">Take Me Home</span>
+        </a>
+    </div>
+</div>
+</body>
+</html>

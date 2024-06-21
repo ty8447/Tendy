@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Settings - Tendy</title>
+    <link rel="icon" type="image/png" href="/static/icons/tendy_logo.png">
+    <style>
+        body {
+            background-color: {{ color_scheme['background_color'] }};
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .page-container {
+            max-width: 800px;
+            max-height: calc(100% - 20px);
+            margin: 20px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+            overflow: auto;
+            overflow-y: auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .menu-container {
+            max-height: calc(100% - 20px);
+            overflow-y: hidden;
+        }
+
+        .menu-section {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .menu-item {
+            padding: 5px 0;
+        }
+
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #cccccc;
+            padding: 20px;
+            z-index: 1000;
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: popupAnimation 0.3s ease-in-out forwards; /* Animation */
+        }
+        .popup-title {
+            font-family: 'Roboto', sans-serif;
+            font-size: 24px; /* Larger font size for the title */
+            margin-bottom: 5px; /* Smaller margin below the title */
+        }
+
+        .popup-subtitle {
+            font-family: 'Roboto', sans-serif;
+            font-size: 18px; /* Slightly smaller font size for the subtitle */
+            margin-bottom: 10px;
+        }
+
+        .popup-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px; /* Same font size for the rest of the text */
+            margin-bottom: 10px;
+        }
+
+        .popup-button {
+            background-color: {{ color_scheme['secondary_color'] }};
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        /* Animation keyframes */
+        @keyframes popupAnimation {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8); /* Initial scale */
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1); /* Full size */
+                opacity: 1;
+            }
+        }
+
+        /* Style for the login section */
+        .login-form {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center items horizontally */
+            text-align: center;
+            width: 100%; /* Set the width of the login form to 100% to center it within the container */
+        }
+
+        /* Style for the input fields */
+        .input-container.username {
+            margin-bottom: 15px;
+            width: 50%;
+            margin: 10px auto;
+            text-align: center;
+            display: flex;
+            align-items: center; /* Center items vertically */
+            flex-direction: column;
+        }
+
+        .input-container.username label {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 5px;
+            text-align: right;
+            flex: 1; /* Adjust label width */
+        }
+
+        .input-container.password {
+            margin-bottom: 15px;
+            width: 50%;
+            margin: 10px auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center items vertically */
+        }
+
+        .input-container.password label {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 5px;
+            text-align: center;
+            flex: 1; /* Adjust label width */
+        }
+
+        .input-container.username input {
+            width: 75%; /* Full width of the input container */
+            margin-left: 5px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center; /* Center text within the input fields */
+        }
+
+        .input-container.password input {
+            width: 100%; /* Full width of the input container */
+            margin-left: 5px;
+            padding: 10px;
+            border: 1px solid transparent;
+            background: none;
+            font-size: 16px;
+            text-align: center; /* Center text within the input fields */
+        }
+
+        .input-container.password input:focus {
+            outline: none; /* Remove the default outline when the input is focused */
+        }
+
+        /* Style for the Sign In button */
+        .login-button {
+            width: 50%; /* Half the width of the container */
+            padding: 10px;
+            margin: 10px auto; /* Center the button horizontally and add some top and bottom margin for spacing */
+            background-color: {{ color_scheme['secondary_color'] }};
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center; /* Center text within the button */
+        }
+
+        .login-button:hover {
+            background-color: {{ lowered_secondary_color }};
+        }
+
+        /* Style for the "Don't have an account?" text */
+        .create-account-text {
+            font-size: 16px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .create-account-text a {
+            text-decoration: none;
+            color: #0073e6;
+        }
+
+        .create-account-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Style for the greeting message */
+        .settings-menu h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* Style for the user options buttons */
+        .user-options {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .user-options button {
+            width: 200px;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: {{ color_scheme['secondary_color'] }};
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .user-options button:hover {
+            background-color: #6e5a3a;
+        }
+
+        .password-container {
+            display: flex;
+            margin-left: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            align-items: center;
+            background-color: white;
+            width: 75%;
+            transition: border-color 0.3s;
+        }
+
+        .password-toggle {
+            background: none;
+            border: none;
+            border-radius: 5px; /* Initially rounded on all corners */
+            padding: 3px; /* Remove padding */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            width: 30px; /* Set a fixed width */
+        }
+
+        .password-container:focus-within {
+            border-color: black; /* Change the border color when focused */
+            border-width: 2px;
+        }
+
+        .password-toggle img {
+            width: 100%; /* Make sure the image fills the button */
+            height: 100%;
+        }
+
+        .modal {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <h1>Settings</h1>
+        <div class="menu-container">
+            <div class="menu-section">
+                <h2>Appearance & Experience</h2>
+                <div class="menu-item">
+                    <label for="themeSelect">Theme:</label>
+                    <select id="themeSelect" onchange="changeTheme(this)">
+                        <option value="">Select a theme</option>
+                        {% for theme in themes %}
+                            <option value="{{ theme }}" {% if theme == color_scheme %}selected{% endif %}>{{ theme }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="menu-item">
+                    <button onclick="firstTimePrompt()">Show Welcome Message</button>
+                </div>
+            </div>
+            <div class="menu-section">
+                <h2>Reset</h2>
+                <div class="menu-item">
+                    <button onclick="resetSavedRecipes()">Reset Saved Recipes</button>
+                </div>
+                <div class="menu-item">
+                    <button onclick="resetRatings()">Reset Ratings</button>
+                </div>
+                <div class="menu-item">
+                    <button onclick="resetAll()">Reset All</button>
+                </div>
+            </div>
+            <div class="menu-section text-center">
+                <h2>Account Settings</h2>
+                {% if not signed_in %}
+                <form class="login-form" id="loginForm" action="/settings" method="POST">
+                    <div id="errorMessage" class="error-message" style="display: none;"></div>
+                    <div class="input-container username">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required placeholder="Enter your username">
+                    </div>
+                    <div class="input-container password">
+                        <label for="password">Password:</label>
+                        <div class="password-container">
+                            <input type="password" id="password" name="password" required placeholder="Enter your password">
+                            <div class="password-toggle" id="passwordToggle" onclick="togglePasswordVisibility()">
+                                <img id="eyeIcon" src="/static/icons/eye_open_black.png" alt="Show Password">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="login-button">Sign In</button>
+                    <p class="create-account-text">Don't have an account? <a href="/create-account">Sign up</a></p>
+                </form>
+                {% endif %}
+                {% if signed_in %}
+                    <div class="settings-menu" id="settingsMenu">
+                        <div id="greetingText" style="display: none">
+                            <h3>Hello <span id="usernamePlaceholder">
+                                User
+                            </span>!</h3></div>
+                        <div class="user-options">
+                            <button onclick="signOut()">Sign Out</button>
+                            <button onclick="confirmDeleteAccount()">Delete Account</button>
+                            <button onclick="editAvatar()">Edit Avatar</button>
+                        </div>
+                        <div id="deleteAccountModal" class="modal">
+                            <div class="modal-content">
+                                <p>Are you sure you want to delete your account?</p>
+                                <button onclick="deleteAccount()">Yes</button>
+                                <button onclick="closeDeleteAccountModal()">No</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% if is_admin %}
+                    <p>ADMIN</p>
+                    <div class="admin-portal" id="admin-portal">
+                        <button onclick="usereditor()">Edit Users</button>
+                        <button onclick="testmode()">User View</button>
+                        <button onclick="toggleparams()">Lock/Unlock Parameters</button>
+                        <button onclick="revieweditor()">Review Editor</button>
+                        <button onclick="locationeditor()">Location Editor</button>
+                        <button onclick="generateQR()">Generate Site QR Code</button>
+
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="menu-section">
+                <h2>Reports & Suggestions</h2>
+                <div class="menu-item">
+                    <button onclick="submitBug()">Found a Bug?</button>
+                </div>
+                <div class="menu-item">
+                    <button onclick="submitRequest()">Submit a Feature Request</button>
+                </div>
+
+            </div>
+        </div>
+        <div class="back-link">
+            <a href="javascript:void(0);" onclick="goBackToPreviousPage()">Go Back</a>
+        </div>
+    </div>
+    <div class="popup-overlay" id="popup-overlay"></div>
+    <div class="popup" id="popup">
+        <p class="popup-title">Welcome to <strong>Tendy</strong>,</p>
+        <p class="popup-subtitle">Your Virtual Bartending Assistant</p>
+        <p class="popup-text">We're thrilled to have you here as we create the perfect cocktail experience for you.</p>
+        <p class="popup-text">Please keep in mind that our site is currently in development.</p>
+        <p class="popup-text">If you encounter any issues or have suggestions, please click one of the buttons in settings.</p>
+        <p class="popup-text">Additionally, we use cookies to enhance your experience by storing your saved recipes.</p>
+        <button class="popup-button" onclick="closePopup()">Let's Get Crafting!</button>
+    </div>
+    <script>
+        const themes = ["Default", "Dark Mode","Red","Default 2","Dark Mode 2","Sepia","Newspaper","Neon"];
+        const loginForm = document.getElementById("loginForm");
+        const settingsMenu = document.getElementById("settingsMenu");
+        const greetingText = document.getElementById("greetingText");
+
+        // Function to check the password field and show/hide the toggle button
+        function checkPasswordField() {
+            const passwordField = document.getElementById("password");
+            const passwordToggle = document.getElementById("passwordToggle");
+            const eyeIcon = document.getElementById("eyeIcon");
+
+            if (passwordField.value) {
+                passwordToggle.style.display = "block";
+                eyeIcon.src = "/static/icons/eye_open_black.png";
+                eyeIcon.alt = "Show Password";
+            } else {
+                passwordToggle.style.display = "none";
+                eyeIcon.src = ""; // Clear the icon source when hiding
+                eyeIcon.alt = ""; // Clear the alt text when hiding
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById("password");
+            const eyeIcon = document.getElementById("eyeIcon");
+            const passwordContainer = document.querySelector(".password-container"); // Get the password container
+
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                passwordContainer.setAttribute("data-show-password", "true");
+                eyeIcon.src = "/static/icons/eye_closed_black.png"; // Change the icon to closed eye
+            } else {
+                passwordInput.type = "password";
+                passwordContainer.setAttribute("data-show-password", "false");
+                eyeIcon.src = "/static/icons/eye_open_black.png"; // Change the icon to open eye
+            }
+
+            passwordContainer.focus();
+
+            // Check if there is text inside the password field
+            const passwordValue = passwordInput.value.trim();
+        }
+        function updateGreeting() {
+            const usernamePlaceholder = document.getElementById("usernamePlaceholder");
+            const greetingText = document.getElementById("greetingText");
+
+            fetch('/get-username', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (response.status === 200) {
+                    return response.json();
+                } else if (response.status === 401) {
+                    // User is not authenticated, so do not update the greeting
+                    return { username: null };
+                } else {
+                    // Handle other errors generically without exposing status codes
+                    return { username: null };
+                }
+            })
+            .then(data => {
+                if (data && data.username) {
+                    if (data.firstName) {
+                        if (usernamePlaceholder) {
+                            usernamePlaceholder.textContent = data.firstName;
+                        }
+                    } else {
+                        if (usernamePlaceholder) {
+                            usernamePlaceholder.textContent = data.username;
+                        }
+                    }
+                    if (greetingText) {
+                        greetingText.style.display = "block";
+                    }
+                } else {
+                    // Handle the case where the user is not authenticated or there's an error
+                    if (usernamePlaceholder) {
+                        usernamePlaceholder.textContent = "Guest";
+                    }
+                    if (greetingText) {
+                        greetingText.style.display = "none";
+                    }
+                }
+            })
+            .catch(error => {
+                // Handle other errors, e.g., session token is invalid or expired
+                if (usernamePlaceholder) {
+                    usernamePlaceholder.textContent = "Guest";
+                }
+                if (greetingText) {
+                    greetingText.style.display = "none";
+                }
+            });
+        }
+
+        function signOut() {
+            // Implement the clearSessionToken function to clear the session on the server
+            fetch('/logout', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (response.status === 200) {
+                    // Successfully logged out, redirect to the sign-in or home page
+                    window.location.href = "/settings";
+                } else {
+                    // Handle logout error
+                    console.error('Logout failed.');
+                }
+            })
+            .catch(error => {
+                console.error('Error during logout:', error);
+            });
+        }
+
+        function confirmDeleteAccount() {
+            var modal = document.getElementById("deleteAccountModal");
+            modal.style.display = "block";
+        }
+
+        function closeDeleteAccountModal() {
+            var modal = document.getElementById("deleteAccountModal");
+            modal.style.display = "none";
+        }
+
+        function deleteAccount() {
+            // Hide the confirmation modal
+        closeDeleteAccountModal();
+
+        // Make an AJAX request to the /delete-account route
+        fetch('/delete-account', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            if (response.status === 200) {
+                // Account deleted successfully, provide feedback to the user
+                alert("Your account has been deleted.");
+                // Redirect to the sign-in page or home page if needed
+                window.location.href = "/settings"; // Change the URL accordingly
+            } else {
+                // Account deletion failed, provide an error message
+                alert("Account deletion failed. Please try again.");
+            }
+        })
+        .catch(error => {
+            console.error('Error during account deletion:', error);
+            // Handle the error as needed
+        });
+        }
+
+        // Function to edit the avatar (implement this as needed)
+        function editAvatar() {
+            // Implement the avatar editing logic here
+        }
+
+
+
+
+        // Function to populate the theme dropdown
+        function populateThemeDropdown() {
+            const themeSelect = document.getElementById("themeSelect");
+
+            themes.forEach((theme) => {
+                const option = document.createElement("option");
+                option.value = theme;
+                option.textContent = theme;
+                themeSelect.appendChild(option);
+            });
+        }
+
+        function firstTimePrompt() {
+        document.cookie = "popupFlag=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        const popupOverlay = document.getElementById("popup-overlay");
+            const popup = document.getElementById("popup");
+
+            popupOverlay.style.display = "block";
+            popup.style.display = "block";
+
+            // Add animation class
+            popup.classList.add("popup-show");
+        }
+                // Function to close the popup and set the flag
+        function closePopup() {
+            const popupOverlay = document.getElementById("popup-overlay");
+            const popup = document.getElementById("popup");
+
+            // Remove animation class
+            popup.classList.remove("popup-show");
+
+            setTimeout(() => {
+                popupOverlay.style.display = "none";
+                popup.style.display = "none";
+            }, 300); // Wait for the animation to finish
+
+            // Set a cookie to remember that the user has seen the popup
+            document.cookie = "popupFlag=true; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/";
+        }
+        function goBackToPreviousPage() {
+            // Retrieve the stored URL from session storage
+            const previousPageUrl = sessionStorage.getItem("currentPage");
+
+            // Navigate to the previous page
+            if (previousPageUrl) {
+                window.location.href = previousPageUrl;
+            } else {
+                // If no previous URL is found, you can provide a default URL to go back to
+                window.location.href = "/"; // Change this to your default page URL
+            }
+        }
+
+        function resetSavedRecipes() {
+            document.cookie = "saved-recipes-list=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            // Redirect to the home page
+            window.location.href = "/";
+        }
+
+        function resetRatings() {
+            // Add code to reset ratings here
+        }
+
+        function resetAll() {
+             // Clear all cookies by setting their expiration to the past
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i];
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            }
+
+            // Redirect to the home page
+            window.location.href = "/";
+        }
+
+         // Function to set a cookie
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+
+        function changeTheme(select) {
+            const selectedTheme = select.value;
+
+            // Set the selected theme in a cookie
+            setCookie("color_scheme", selectedTheme, 365);
+
+            // Force a page reload to apply the new theme
+            window.location.reload();
+        }
+
+        // Function to get a cookie by name
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
+
+        // Function to set the selected option in the dropdown based on the color_scheme cookie
+        function setSelectedOptionBasedOnCookie() {
+            const themeSelect = document.getElementById("themeSelect");
+            const colorSchemeCookie = getCookie("color_scheme");
+
+            if (colorSchemeCookie) {
+                themeSelect.value = colorSchemeCookie;
+            }
+        }
+
+        function submitBug() {
+            const email = "colerabe@gmail.com";
+            const subject = "Bug Report for Tendy";
+
+            // Create the body with section headers and placeholders
+            const body = `Please provide as much detail as possible so we can resolve the issue.:
+
+            **Brief Description of the Bug:**
+
+            [Please provide a brief description of the bug here]
+
+
+            **Page it occurred on:**
+
+            [Specify the page where you encountered the bug]
+
+
+            **Steps to recreate the issue (optional):**
+
+            [If possible, describe the steps to reproduce the bug]
+
+
+            **Any Additional Information:**
+
+            [Include any additional details or information that may be relevant]`;
+
+
+            const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+            // Open the default email client with the pre-filled email
+            window.location.href = mailtoLink;
+        }
+
+        function submitRequest() {
+            const email = "colerabe@gmail.com";
+            const subject = "Feature Request for Tendy";
+            const body = "Describe your feature request here.\n\nPlease provide as much detail as possible to help us understand your suggestion.";
+
+            const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+            // Open the default email client with the pre-filled email
+            window.location.href = mailtoLink;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            populateThemeDropdown();
+            setSelectedOptionBasedOnCookie();
+
+            // Check if the user has an active session
+            const isSignedIn = {{ signed_in|lower }};
+
+            if (isSignedIn) {
+                updateGreeting();
+            }
+        });
+
+        // Add an event listener to check the password field on input change
+        document.getElementById("password").addEventListener("input", checkPasswordField);
+
+        // Call checkPasswordField initially to set the button's initial state
+        checkPasswordField();
+
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Unlisted Mixer - Tendy</title>
+    <link rel="icon" type="image/png" href="/static/icons/tendy_logo.png">
+    <style>
+        body {
+            background-color: {{ color_scheme['background_color'] }};
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #e0c28e;
+            border-radius: 15px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-item {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .form-number-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .percent-symbol {
+            display: inline-block;
+            padding: 8px;
+            background-color: #ccc;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-left: 5px;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-image: url("/static/icons/dropdown_arrow.png");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .popup {
+            background-color: rgba(255, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="content" class="fade-in">
+        <div class="top-icons">
+            <a href="/add-mixer">
+                <img src="/static/icons/back.png" alt="Back" class="icon" style="padding: 10px;">
+            </a>
+            <a href="/">
+                    <img src="/static/icons/home.png" alt="Home" class="icon" style="padding: 10px;">
+                </a>
+            <a href="/settings" onclick="saveCurrentPage()">
+                <img src="/static/icons/settings.svg" alt="Settings" class="icon" style="width: 60px; height: 60px; padding: 10px; margin-right: 30px;">
+            </a>
+        </div>
+        <div class="form-container">
+            <h1>Add Unlisted Mixer</h1>
+            <form action="/submit-unlisted-mixer" method="post">
+                <div class="form-item">
+                    <label for="mixer-name" class="form-label">Mixer Name:</label>
+                    <input type="text" id="mixer-name" name="mixer-name" class="form-input" required>
+                </div>
+                <div class="form-item">
+                    <label for="mixer-type" class="form-label">Mixer Type:</label>
+                    <select id="mixer-type" name="mixer-type" class="form-select" required>
+                        <option value="" disabled selected>Select Mixer Type</option>
+                        {% for type in available_mixer_types %}
+                            <option value="{{ type }}">{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="add-custom-button">Add Mixer</button>
+            </form>
+        </div>
+    </div>
+    <div id="popup" class="popup" style="display: none;">
+    This item is already in Our Bar!
+</div>
+
+<script>
+
+        // Function to get a cookie by name
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
+
+    // Function to show the popup for 2 seconds and then hide it
+    function showPopup() {
+        var popup = document.getElementById("popup");
+        popup.style.display = "block";
+        setTimeout(function() {
+            popup.style.display = "none";
+        }, 2000); // 2000 milliseconds = 2 seconds
+    }
+
+    // Show the popup if the item already exists
+    //var itemAlreadyExists = {{ item_already_exists|lower }};
+    //if (itemAlreadyExists) {
+    //    showPopup();
+    //}
+
+    var form = document.getElementById("liquor-form");
+    form.addEventListener("submit", function(event) {
+        // Hide the popup when the user starts inputting data
+        var popup = document.getElementById("popup");
+        popup.style.display = "none";
+
+        var liquorName = document.getElementById("liquor-name").value;
+        var liquorType = document.getElementById("liquor-type").value;
+
+        var existingLiquorName = '{{ existing_liquor_name }}';
+        var existingLiquorType = '{{ existing_liquor_type }}';
+
+        // Check if the liquor name and type match an existing liquor
+        if (liquorName === existingLiquorName && liquorType === existingLiquorType) {
+            event.preventDefault(); // Prevent the form submission
+            showPopup(); // Show the popup
+        }
+    });
+
+    function saveCurrentPage() {
+            // Store the current page's URL in session storage
+            sessionStorage.setItem("currentPage", window.location.href);
+        }
+</script>
+</body>
+</html>

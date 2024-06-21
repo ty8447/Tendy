@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Tendy</title>
+    <link rel="icon" type="image/png" href="/static/icons/tendy_logo.png">
+    <style>
+        body {
+            background-color: #f5f5f5;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .page-container {
+            max-width: 800px;
+            max-height: calc(100% - 20px);
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+            overflow: auto;
+            overflow-y: auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .welcome-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* Center the sections horizontally */
+            margin-top: 20px;
+        }
+
+        .welcome-item {
+            width: calc(50% - 10px);
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            flex: 0 0 calc(50% - 10px); /* Keep sections at 50% width */
+        }
+
+
+        .welcome-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .welcome-description {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .welcome-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .done-button {
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .done-button button {
+            background-color: #8f7c59;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .done-button button:hover {
+            background-color: #6e5a3a;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <h1>Welcome to Tendy</h1>
+        <div class="welcome-content">
+            <div class="welcome-item">
+                <h2 class="welcome-header">Save Your Favorite Drinks</h2>
+                <p class="welcome-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec mauris ut nunc gravida eleifend.</p>
+                <img class="welcome-image" src="/static/images/placeholder.png" alt="Save Drinks">
+            </div>
+            <div class="welcome-item">
+                <h2 class="welcome-header">Vote on Recipes</h2>
+                <p class="welcome-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec mauris ut nunc gravida eleifend.</p>
+                <img class="welcome-image" src="/static/images/placeholder.png" alt="Vote on Recipes">
+            </div>
+            <div class="welcome-item">
+                <h2 class="welcome-header">Collect Clothing for Your Avatar</h2>
+                <p class="welcome-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec mauris ut nunc gravida eleifend.</p>
+                <img class="welcome-image" src="/static/images/placeholder.png" alt="Collect Clothing">
+            </div>
+        </div>
+        <div class="done-button">
+            <button onclick="redirectToMainPage()">Done</button>
+        </div>
+    </div>
+    <script>
+        function redirectToMainPage() {
+            // Redirect to the main page
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

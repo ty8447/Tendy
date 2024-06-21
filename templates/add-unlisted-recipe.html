@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Unlisted Recipe - Tendy</title>
+    <link rel="icon" type="image/png" href="/static/icons/tendy_logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        body {
+            background-color: {{ color_scheme['background_color'] }};
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #content {
+            max-height: calc(100vh - 20px); /* Set a maximum height for the content */
+            overflow-y: auto; /* Enable vertical scrolling when content overflows */
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #e0c28e;
+            border-radius: 15px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .error-text {
+            color: red;
+        }
+
+        button {
+        background-color: inherit;
+        color: inherit;
+        }
+
+        .toggle-button {
+            background-color: #888;
+        }
+
+
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+            z-index: 999; /* Place the overlay above other content */
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .overlay-5percent {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent black overlay */
+            z-index: 1001; /* Place the overlay above other content */
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-item {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .form-select {
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .glass-icon {
+            margin-right: 10px;
+        }
+
+        .form-submit-button {
+            background-color: #ffe3a1;
+            /* color: white; */
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .form-submit-button:hover {
+            background-color: #ad956d;
+        }
+
+        .ingredient-button {
+            background-color: #ffe3a1;
+            //color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .ingredient-button:hover {
+            background-color: #ad956d;
+        }
+
+        .liquor-option {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background-color: transparent;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .liquor-option:hover {
+            background-color: #f0f0f0;
+        }
+
+        .popup-menu {
+            z-index: 1000; /* Increase z-index value */
+
+        }
+
+        .quantity-popup {
+            z-index: 10002; /* Increase z-index value */
+
+        }
+
+        .form-number-input-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .form-number-input {
+            width: 60px; /* Adjust the width as needed */
+            margin-right: 5px; /* Add some space between the input and the text */
+        }
+
+        .drink-text {
+            margin-left: 10px;
+            font-size: 20px;
+            color: black;
+        }
+
+        .add-recipe-row{
+            display: flex; /* Change to flex display */
+            align-items: center; /* Align items vertically */
+        }
+
+        .toggle-button.active {
+            background-color: #b31f3d;
+            color: #1e1f22;
+
+        }
+    </style>
+</head>
+<body>
+    <div id="content" class="fade-in">
+        <div class="top-icons">
+            <a href="/mix">
+                <img src="/static/icons/back.png" alt="Back" class="icon" style="padding: 10px;">
+            </a>
+            <a href="/">
+                <img src="/static/icons/home.png" alt="Home" class="icon" style="padding: 10px; width: 60px; height: 60px;">
+            </a>
+            <a href="/settings" onclick="saveCurrentPage()">
+                <img src="/static/icons/settings.svg" alt="Settings" class="icon" style="width: 60px; height: 60px; padding: 10px; margin-right: 30px;">
+            </a>
+        </div>
+        <div class="form-container">
+            <h1>Add Unlisted Recipe</h1>
+            <form id="recipe-form" action="/submit-unlisted-recipe" method="POST">
+                <div class="form-item">
+                    <label for="recipe-name" class="form-label">Name:</label>
+                    <input type="text" id="recipe-name" name="recipe-name" class="form-input" required>
+                </div>
+                <div class="form-item">
+                    <label for="recipe-description" class="form-label">Description (optional):</label>
+                    <textarea id="recipe-description" name="recipe-description" class="form-textarea"></textarea>
+                </div>
+                <div class="form-item">
+                    <label for="recipe-ingredients" class="form-label">Ingredients:</label>
+                    <ul id="ingredient-list">
+                    </ul>
+                    <button id="add-ingredient-button" class="ingredient-button">Add Ingredients</button>
+                </div>
+                <div class="overlay" id="ingredient-overlay">
+                    <div class="filter-menu" id="ingredient-popup">
+                        <div class="form-item">
+                            <label for="item-search" class="form-label">Search Liquors:</label>
+                            <input type="text" id="item-search" class="form-input" placeholder="Search by name">
+                            <button id="toggle-button-1" class="toggle-button">Liquors</button>
+                            <button id="toggle-button-2" class="toggle-button">Mixers</button>
+                            <button id="toggle-button-3" class="toggle-button">Garnishes</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <label for="recipe-portions" class="form-label">Portions:</label>
+                    <div class="form-number-input-container">
+                        <input type="number" id="recipe-portions" name="recipe-portions" class="form-number-input" min="1" max="100" required>
+                        <span class="drink-text">drink</span>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <label for="recipe-glass" class="form-label">Glass:</label>
+                    <select id="recipe-glass" name="recipe-glass" class="form-select" required>
+                        <option value="" disabled selected>Select Glass</option>
+                        {% for glass in glass_options %}
+                            <option value="{{ glass }}">
+                                <span class="glass-icon">
+                                    <i class="fas fa-{{ glass|lower|replace(' ', '-') }}"></i>
+                                </span>
+                                {{ glass }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+                <div class="form-item">
+                    <label for="recipe-instructions" class="form-label">Instructions:</label>
+                    <textarea id="recipe-instructions" name="recipe-instructions" class="form-textarea" required></textarea>
+                </div>
+                <div class="add-recipe-row">
+                    <button type="submit" class="form-submit-button">Add Recipe</button>
+                    <div id="recipe-exists-message" class="hidden">A recipe with this name already exists!</div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <script>
+        let availableLiquors = []; // Declare the variable at the top
+        let liquorlist;
+        let originalPopup;
+        document.addEventListener('DOMContentLoaded', () => {
+            content.style.maxHeight = 'calc(100vh - 20px)';
+            content.style.overflowY = 'auto';
+            const ingredientList = document.getElementById('ingredient-list');
+            const addIngredientButton = document.getElementById('add-ingredient-button');
+            const addRecipeButton = document.querySelector('.form-submit-button');
+            const ingredientOverlay = document.getElementById('ingredient-overlay');
+            const ingredientPopup = document.getElementById('ingredient-popup');
+            const toggleButton1 = document.getElementById('toggle-button-1');
+            const toggleButton2 = document.getElementById('toggle-button-2');
+            const toggleButton3 = document.getElementById('toggle-button-3');
+            let selectedToggle = toggleButton1;
+            let availableItems = availableLiquors;
+
+            fetchAvailableLiquors();
+            fetchAvailableMixers();
+            fetchAvailableGarnishes();
+
+            const ingredients = []; // Array to store added ingredients
+            const ingredientTypes = []; // Array to store ingredient types
+            const overlay = createOverlay();
+			const quantityOverlay = createQuantityOverlay();
+
+            const liquorSearchInput = document.getElementById('item-search');
+
+
+            const formFields = document.querySelectorAll('.form-input, .form-textarea, .form-select');
+            formFields.forEach(field => {
+                field.addEventListener('input', () => {
+                    // Reset the color of the corresponding label
+                    const label = document.querySelector(`[for="${field.id}"]`);
+                    if (label) {
+                        label.classList.remove('error-text');
+                    }
+                });
+            });
+
+            const portionsInput = document.getElementById('recipe-portions');
+            portionsInput.addEventListener('input', () => {
+                const portionsLabel = document.querySelector('[for="recipe-portions"]');
+                if (!portionsInput.value.trim()) {
+                    portionsLabel.classList.add('error-text');
+                } else {
+                    portionsLabel.classList.remove('error-text');
+                }
+            });
+
+            addIngredientButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                console.log("Ingredient Button Pressed")
+                showOverlay();
+                const popupMenu = createItemPopup(); // Create the popup menu
+
+                if (originalPopup) {
+                    overlay.removeChild(originalPopup);
+                }
+                createAndShowPopupItems(popupMenu);
+                originalPopup = popupMenu;
+                });
+
+
+            addRecipeButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                const requiredFields = document.querySelectorAll('[required]');
+                const recipeDescription = document.getElementById('recipe-description').value;
+                let hasEmptyFields = false;
+                console.log(ingredientList);
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        hasEmptyFields = true;
+
+                        // Add the error-text class to the corresponding label
+                        const label = document.querySelector(`[for="${field.id}"]`);
+                        if (label) {
+                            label.classList.add('error-text');
+                        }
+                    }
+                });
+
+                const ingredientsLabel = document.querySelector('[for="recipe-ingredients"]'); // Change to the corresponding label
+                if (ingredients.length === 0) {
+                    hasEmptyFields = true;
+                    ingredientsLabel.classList.add('error-text');
+                } else {
+                    ingredientsLabel.classList.remove('error-text');
+                }
+
+                if (hasEmptyFields) {
+                    return;
+                }
+
+                // If all required fields are filled, submit the form
+                const formData = new FormData(document.querySelector('#recipe-form'));
+                const selectedLiquorTypes = [];
+
+                ingredients.forEach(ingredient => {
+                    // Extract the liquor type from the ingredient line (e.g., "ingredient (Liquor Type)")
+                    const matches = ingredient.match(/\(([^)]+)\)/);
+                    if (matches && matches.length > 1) {
+                        const liquorType = matches[1];
+                            selectedLiquorTypes.push(liquorType);
+                    }
+                });
+                formData.append('ingredient-list', JSON.stringify(ingredients));
+                formData.append('ingredient-types', JSON.stringify(selectedLiquorTypes));
+                formData.append('ingredient-categories', JSON.stringify(ingredientTypes));
+                formData.append('recipe-description', recipeDescription); // Add the recipe description
+                console.log("Ingredient Types");
+                console.log(selectedLiquorTypes);
+                console.log("Ingredient Categories");
+                console.log(ingredientTypes);
+
+                    fetch('/submit-unlisted-recipe', {
+                        method: 'POST',
+                        body: formData, // Use formData directly without JSON.stringify
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Recipe added successfully');
+                            window.location.href = '/mix';
+                        } else {
+                            console.error('Error adding recipe:', data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        console.log("Recipe already Added");
+                        const recipeExistsMessage = document.getElementById('recipe-exists-message');
+                        recipeExistsMessage.classList.remove('hidden');
+                        setTimeout(() => {
+                            recipeExistsMessage.classList.add('hidden');
+                        }, 2000);
+                    });
+            });
+
+            // Define click handlers
+            function toggleButton1ClickHandler() {
+                console.log('Toggle button 1 pressed');
+                selectedToggle = toggleButton1;
+                selectedItemType = 'liquor';
+                availableItems = availableLiquors; // Set availableItems to availableLiquors
+                populateSearchList('liquor');
+                updateSearchResults();
+            }
+
+            function createAndShowPopupItems(popupMenu){
+
+                // Create a scrollable list of available liquors
+                liquorList = document.createElement('ul');
+                liquorList.style.maxHeight = '300px';
+                liquorList.style.overflowY = 'auto';
+
+                // Create the search bar for liquors
+                    const liquorSearchInput = document.createElement('input');
+                    liquorSearchInput.type = 'text';
+                    liquorSearchInput.id = 'item-search';
+                    liquorSearchInput.className = 'form-input';
+                    liquorSearchInput.placeholder = 'Search by name';
+                    toggleButton1ClickHandler();
+                    // Add an input event listener to filter liquors as you type
+                    liquorSearchInput.addEventListener('input', () => {
+                        const searchQuery = liquorSearchInput.value.toLowerCase();
+                        const filteredLiquors = filterItems(searchQuery);
+
+                        // Clear the current list and repopulate with filtered liquors
+                        liquorList.innerHTML = '';
+                        filteredLiquors.forEach(liquor => {
+                            // Create a list item for the liquor
+                            const liquorItem = document.createElement('li');
+
+                            // Create a button to select the liquor
+                            const liquorButton = document.createElement('button');
+                            liquorButton.textContent = liquor.name; // Display the liquor's name
+                            liquorButton.classList.add('liquor-option');
+
+                            // Append the button to the list item
+                            liquorItem.appendChild(liquorButton);
+
+                            // Create a sub-list to display "ABV" and "Type" if they exist
+                            const subList = document.createElement('ul');
+
+                            if (liquor.abv) {
+                                const abvItem = document.createElement('li');
+                                abvItem.textContent = `ABV: ${liquor.abv}`;
+                                subList.appendChild(abvItem);
+                            }
+
+                            if (liquor.type) {
+                                const typeItem = document.createElement('li');
+                                typeItem.textContent = `Type: ${liquor.type}`;
+                                subList.appendChild(typeItem);
+                            }
+
+                            // Append the sub-list to the liquor item
+                            liquorItem.appendChild(subList);
+
+                            // Append the liquor item to the liquorList
+                            liquorList.appendChild(liquorItem);
+
+                        });
+
+                    });
+
+                    createToggleButton(popupMenu, 'Liquors', 'toggle-button-1', toggleButton1ClickHandler);
+                    createToggleButton(popupMenu, 'Mixers', 'toggle-button-2', toggleButton2ClickHandler);
+                    createToggleButton(popupMenu, 'Garnishes', 'toggle-button-3', toggleButton3ClickHandler);
+
+                    toggleButton1.classList.add('active');
+
+                    // Append the search bar to the popupMenu
+                    popupMenu.appendChild(liquorSearchInput);
+
+                // Populate the liquor options within the popup
+                availableLiquors.forEach(liquor => {
+                    const liquorItem = document.createElement('li');
+                    const liquorButton = document.createElement('button');
+                    liquorButton.textContent = liquor.name; // Display the liquor's name
+                    liquorButton.classList.add('liquor-option');
+                    liquorItem.appendChild(liquorButton);
+
+                    // Create a sub-list to display "abv" and "type" if they exist
+                    const subList = document.createElement('ul');
+
+                    if (liquor.abv) {
+                        const abvItem = document.createElement('li');
+                        abvItem.textContent = `ABV: ${liquor.abv}`;
+                        subList.appendChild(abvItem);
+                    }
+
+                    if (liquor.type) {
+                        const typeItem = document.createElement('li');
+                        typeItem.textContent = `Type: ${liquor.type}`;
+                        subList.appendChild(typeItem);
+                    }
+
+                    // Append the sub-list to the liquor item
+                    liquorItem.appendChild(subList);
+
+                    liquorList.appendChild(liquorItem);
+                });
+
+                    // Append the liquorList to the popupMenu
+                    popupMenu.appendChild(liquorList);
+
+                    overlay.appendChild(popupMenu);
+
+                    // Prevent the click event from propagating when clicking inside the search bar
+                    liquorSearchInput.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                    });
+                    overlay.addEventListener('click', (event) => {
+                        if (!event.target.closest('.popup-menu')) {
+                            overlay.style.display = 'none';
+                            liquorSearchInput.style.display = 'none';
+                            popupMenu.style.display = 'none';
+                        }
+                    });
+
+            }
+
+            function toggleButton2ClickHandler() {
+                console.log('Toggle button 2 pressed');
+                selectedToggle = toggleButton2;
+                selectedItemType = 'mixer';
+                availableItems = availableMixers; // Set availableItems to availableMixers
+                populateSearchList('mixer');
+                updateSearchResults();
+            }
+
+            function toggleButton3ClickHandler() {
+                console.log('Toggle button 3 pressed');
+                selectedToggle = toggleButton3;
+                selectedItemType = 'garnish';
+                availableItems = availableGarnishes; // Set availableItems to availableGarnishes
+                populateSearchList('garnish');
+                updateSearchResults();
+            }
+
+            function updateSearchResults() {
+                // Trigger an input event on the search input field
+                const searchInput = document.getElementById('item-search');
+                if (searchInput) {
+                    const event = new Event('input', {
+                        bubbles: true,
+                        cancelable: true,
+                    });
+                    searchInput.dispatchEvent(event);
+                }
+            }
+
+
+            // Functions
+
+            // Function to select a toggle button and deselect others
+
+
+
+            function populateSearchList(category) {
+                // Clear the current list and repopulate with filtered items based on the category
+                const filteredItems = filterItemsByCategory(category);
+                liquorList.innerHTML = ''; // Clear the current list
+
+                filteredItems.forEach(item => {
+                    // Create a list item for the item
+                    const itemElement = document.createElement('li');
+
+                    // Create a button to select the item
+                    const itemButton = document.createElement('button');
+                    itemButton.textContent = item.name; // Display the item's name
+                    itemButton.classList.add('liquor-option');
+
+                    // Append the button to the list item
+                    itemElement.appendChild(itemButton);
+
+                    // Create a sub-list to display additional information if it exists
+                    const subList = document.createElement('ul');
+
+                    if (item.abv) {
+                        const abvItem = document.createElement('li');
+                        abvItem.textContent = `ABV: ${item.abv}`;
+                        subList.appendChild(abvItem);
+                    }
+
+                    if (item.type) {
+                        const typeItem = document.createElement('li');
+                        typeItem.textContent = `Type: ${item.type}`;
+                        subList.appendChild(typeItem);
+                    }
+
+                    // Append the sub-list to the item
+                    itemElement.appendChild(subList);
+
+                    // Add an event listener to add the selected item to the ingredients list
+                    itemButton.addEventListener('click', () => {
+                        if (originalPopup) {
+                            overlay.removeChild(originalPopup);
+                        }
+                        // Create a quantity popup
+                        const quantityPopup = createQuantityPopup(item.name, item.type, selectedItemType);
+
+                        // Add a click event listener to the quantity popup to stop event propagation
+                        quantityPopup.addEventListener('click', (event) => {
+                            event.stopPropagation();
+                        });
+
+                        // Append the quantity popup to the overlay
+                        quantityOverlay.appendChild(quantityPopup);
+
+                        // Display the quantity popup
+                        quantityPopup.style.display = 'block';
+
+                    });
+
+
+                    // Append the item to the search list
+                    liquorList.appendChild(itemElement);
+                });
+            }
+
+            function createToggleButton(menu, buttonText, buttonId, clickHandler) {
+                const toggleButton = document.createElement('button');
+                toggleButton.textContent = buttonText;
+                toggleButton.id = buttonId;
+                toggleButton.classList.add('toggle-button');
+                menu.appendChild(toggleButton);
+                console.log("Button Created");
+                toggleButton.addEventListener('click', clickHandler);
+            }
+
+            function filterItemsByCategory(category) {
+                // Implement your filtering logic here based on the 'category' parameter.
+                // Return an array of filtered items.
+                let filteredItems = [];
+
+                switch (category) {
+                    case 'liquor':
+                        filteredItems = availableLiquors.filter(item => {
+                            // Implement filtering logic for liquors here.
+                            // For example, filter by liquor category or name.
+                            return true; // Replace with your actual filtering condition.
+                        });
+                        break;
+                    case 'mixer':
+                        filteredItems = availableMixers.filter(item => {
+                            // Implement filtering logic for mixers here.
+                            // For example, filter by mixer category or name.
+                            return true; // Replace with your actual filtering condition.
+                        });
+                        break;
+                    case 'garnish':
+                        filteredItems = availableGarnishes.filter(item => {
+                            // Implement filtering logic for garnishes here.
+                            // For example, filter by garnish category or name.
+                            return true; // Replace with your actual filtering condition.
+                        });
+                        break;
+                    default:
+                        // Handle an unknown category here or return an empty array.
+                        break;
+                }
+
+                return filteredItems;
+            }
+
+            // Function to get a cookie by name
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
+
+        function filterItems(searchQuery) {
+            // Normalize search query: remove punctuation, replace abbreviations, and convert to lowercase
+            searchQuery = searchQuery
+                .replace(/[.,\-]/g, '') // Remove periods, commas, and hyphens
+                .toLowerCase();         // Convert to lowercase
+
+            const filteredItems = availableItems.filter(item => {
+                // Normalize liquor name: remove punctuation, replace abbreviations, and convert to lowercase
+                const itemName = item.name
+                    .replace(/[.,\-]/g, '') // Remove periods, commas, and hyphens
+                    .toLowerCase();         // Convert to lowercase
+
+                // Check if the normalized item name includes the search query or its variations
+                return (
+                    itemName.includes(searchQuery) ||
+                    (itemName.includes(" and ") && itemName.replace(" and ", " & ").includes(searchQuery)) ||
+                    (itemName.includes("gray") && itemName.replace("gray", "grey").includes(searchQuery)) ||
+                    (itemName.includes("grey") && itemName.replace("grey", "gray").includes(searchQuery))
+                );
+
+            });
+
+            return filteredItems;
+        }
+
+
+            function createOverlay() {
+                const overlay = document.createElement('div');
+                overlay.classList.add('overlay');
+                overlay.style.display = 'none';
+                document.body.appendChild(overlay);
+                return overlay;
+            }
+			function createQuantityOverlay(){
+				const quantityOverlay = document.createElement('div');
+                quantityOverlay.classList.add('overlay-5percent');
+                quantityOverlay.style.display = 'none';
+                document.body.appendChild(quantityOverlay);
+				console.log("Created Quantity Overlay");
+				return quantityOverlay
+			}
+
+            function createItemPopup() {
+                const popupMenu = document.createElement('div');
+                popupMenu.classList.add('popup-menu');
+                popupMenu.style.position = 'absolute';
+                popupMenu.style.top = '50%';
+                popupMenu.style.left = '50%';
+                popupMenu.style.transform = 'translate(-50%, -50%)';
+                popupMenu.style.backgroundColor = '#555';
+                popupMenu.style.padding = '20px';
+                popupMenu.style.borderRadius = '10px';
+                popupMenu.style.boxShadow = '0px 0px 10px rgba(0, 0, 0, 0.3)';
+
+                const headerText = document.createElement('div');
+                headerText.textContent = 'Select an ingredient to add:';
+                headerText.style.fontWeight = 'bold';
+                popupMenu.appendChild(headerText);
+
+                toggleButton1.classList.add('active');
+                // Add a click event listener to the popup menu (event delegation)
+                popupMenu.addEventListener('click', function (event) {
+                    const targetButton = event.target;
+
+                    // Check if the clicked element is a button with the toggle-button class
+                    if (targetButton.classList.contains('toggle-button')) {
+                        // Deselect all toggle buttons
+                        const toggleButtons = document.querySelectorAll('.toggle-button');
+                        toggleButtons.forEach(btn => {
+                            btn.classList.remove('active');
+                        });
+
+                        // Select the clicked button
+                        targetButton.classList.add('active');
+                        console.log("Target toggle: ", selectedToggle);
+                        console.log('Target ClassList:', targetButton.classList);
+                    }
+                });
+                console.log("selected toggle: ", selectedToggle);
+                console.log('Button ClassList:', selectedToggle.classList);
+
+                return popupMenu; // Return the created popup menu
+            }
+
+            function createQuantityPopup(itemName, itemType, selectedItemType) {
+				showQuantityOverlay();
+                const popup = document.createElement('div');
+                popup.classList.add('quantity-popup');
+                popup.style.position = 'absolute';
+                popup.style.top = '50%';
+                popup.style.left = '50%';
+                popup.style.transform = 'translate(-50%, -50%)';
+                popup.style.backgroundColor = '#555';
+                popup.style.padding = '20px';
+                popup.style.borderRadius = '10px';
+                popup.style.boxShadow = '0px 0px 10px rgba(0, 0, 0, 0.3)';
+
+                // Create a heading for the popup
+                const heading = document.createElement('h2');
+                heading.textContent = `Enter Quantity for ${itemName}`;
+                popup.appendChild(heading);
+
+                // Create an input field for quantity
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'number';
+                quantityInput.placeholder = 'Enter Quantity';
+                popup.appendChild(quantityInput);
+
+                // Create a dropdown for measurement units
+                const unitsDropdown = document.createElement('select');
+                unitsDropdown.id = 'measurement-units';
+                const units = ['ml', 'oz', 'cl', 'cup', 'tbsp', 'tsp', 'dash', 'shot'];
+                units.forEach(unit => {
+                    const option = document.createElement('option');
+                    option.value = unit;
+                    option.textContent = unit;
+                    unitsDropdown.appendChild(option);
+                });
+                popup.appendChild(unitsDropdown);
+
+                // Create a back button
+                const backButton = document.createElement('button');
+                backButton.textContent = 'Back';
+                backButton.addEventListener('click', () => {
+                    popup.style.display = 'none';
+					hideQuantityOverlay();
+					const popupMenu = createItemPopup(); // Create the popup menu
+                    createAndShowPopupItems(popupMenu);
+                    originalPopup = popupMenu;
+					quantityOverlay.removeChild(popup);
+
+                });
+                popup.appendChild(backButton);
+
+                // Create an "Add Ingredient" button
+                const addButton = document.createElement('button');
+                addButton.textContent = 'Add Ingredient';
+                addButton.addEventListener('click', () => {
+                    const quantity = quantityInput.value;
+                    const unit = unitsDropdown.value;
+                    const ingredientLine = quantity ? `${quantity} ${unit}   ${itemName} (${itemType})` : `${itemName} (${itemType})`; // Include the item type
+                    console.log("Ingredient Line");
+                    console.log(ingredientLine);
+                    // Check if the ingredientLine is already in the ingredients list
+                    if (!ingredients.includes(ingredientLine)) {
+                        ingredients.push(ingredientLine);
+                        ingredientTypes.push(selectedItemType);
+                        updateIngredientList();
+                        hideOverlay(); // Close the overlay
+						hideQuantityOverlay();
+					    const popupMenu = createItemPopup(); // Create the popup menu
+                        createAndShowPopupItems(popupMenu);
+                        originalPopup = popupMenu;
+						quantityOverlay.removeChild(popup);
+						console.log("Ingredient Types: ");
+						console.log(ingredientTypes);
+                    } else {
+                    popup.style.display = 'none';
+					hideQuantityOverlay();
+					const popupMenu = createItemPopup(); // Create the popup menu
+                    createAndShowPopupItems(popupMenu);
+                    originalPopup = popupMenu;
+					quantityOverlay.removeChild(popup);
+                    }
+                    createItemPopup();
+                    popup.style.display = 'none';
+                });
+                popup.appendChild(addButton);
+
+                return popup;
+            }
+
+            function showOverlay() {
+                overlay.style.display = 'block';
+                liquorSearchInput.style.display = 'block';
+            }
+			function showQuantityOverlay() {
+                quantityOverlay.style.display = 'block';
+            }
+
+            function hideOverlay() {
+                overlay.style.display = 'none';
+                liquorSearchInput.style.display = 'none';
+            }
+
+			function hideQuantityOverlay() {
+                quantityOverlay.style.display = 'none';
+            }
+
+            // Function to update ingredient list
+            function updateIngredientList() {
+                const ingredientsHTML = ingredients.map((ingredient, index) => {
+                    return `
+                        <li>
+                            <span>${ingredient}</span>
+                            <button class="remove-ingredient-button" data-index="${index}">X</button>
+                        </li>
+                    `;
+                }).join('');
+
+                ingredientList.innerHTML = ingredientsHTML;
+
+                // Add event listeners to remove ingredients when the X button is clicked
+                const removeIngredientButtons = document.querySelectorAll('.remove-ingredient-button');
+                removeIngredientButtons.forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const index = event.currentTarget.getAttribute('data-index');
+                        ingredients.splice(index, 1);
+                        ingredientTypes.splice(index, 1); // Remove the corresponding type
+                        console.log("Ingredient Types: ");
+                        console.log(ingredientTypes);
+                        updateIngredientList();
+                    });
+                });
+            }
+
+        });
+
+        function fetchAvailableLiquors() {
+            fetch('/get-liquor-list')
+                .then(response => response.json())
+                .then(data => {
+                    // Populate the availableLiquors array with the data from the server
+                    availableLiquors = data;
+                    console.log(availableLiquors);
+                    // Update the liquor options in the select element
+
+                    // Continue with any other code that depends on availableLiquors
+                })
+                .catch(error => {
+                    console.error('Error fetching available liquors:', error);
+                });
+        }
+
+
+        function fetchAvailableMixers() {
+            fetch('/get-mixer-list')
+                .then(response => response.json())
+                .then(data => {
+                    // Populate the availableMixers array with the data from the server
+                    availableMixers = data;
+                    console.log(availableMixers);
+                    // Update the mixer options in the select element
+                })
+                .catch(error => {
+                    console.error('Error fetching available mixers:', error);
+                });
+        }
+
+        function fetchAvailableGarnishes() {
+            fetch('/get-garnish-list')
+                .then(response => response.json())
+                .then(data => {
+                    // Populate the availableGarnishes array with the data from the server
+                    availableGarnishes = data;
+                    console.log(availableGarnishes);
+                    // Update the garnish options in the select element
+                })
+                .catch(error => {
+                    console.error('Error fetching available garnishes:', error);
+                });
+        }
+
+        // Function to get a cookie by name
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
+
+        function saveCurrentPage() {
+            // Store the current page's URL in session storage
+            sessionStorage.setItem("currentPage", window.location.href);
+        }
+
+    </script>
+</body>
+</html>

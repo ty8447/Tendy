@@ -1,0 +1,21 @@
+name,type,custom
+Lemon Twist,fruit,FALSE
+Lime Wedge,fruit,FALSE
+Orange Twist,fruit,FALSE
+Cherry,fruit,FALSE
+Olive,vegetable,FALSE
+Mint Leaf,herb/spice,FALSE
+Basil Leaf,herb/spice,FALSE
+Cucumber Slice,vegetable,FALSE
+Pineapple Wedge,fruit,FALSE
+Grapefruit Twist,fruit,FALSE
+Cranberries,fruit,FALSE
+Strawberry,fruit,FALSE
+Celery Stick,vegetable,FALSE
+Rosemary Sprig,herb/spice,FALSE
+Cinnamon Stick,herb/spice,FALSE
+Nutmeg Sprinkle,herb/spice,FALSE
+Sugar Rim,other,FALSE
+Salt Rim,other,FALSE
+Coconut Flakes,other,FALSE
+Chocolate Shavings,other,FALSE

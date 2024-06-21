@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tendy</title>
+    <link rel="icon" type="image/png" href="/static/icons/tendy_logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <style>
+        @font-face {
+            font-family: 'Clarendon Regular';
+            src: url('/static/Clarendon Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Clarendon Bold';
+            src: url('/static/Clarendon Bold.otf') format('opentype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        body {
+            background-color: {{ color_scheme['background_color'] }};
+            margin: 0;
+            font-family: 'Super Clarendon', sans-serif;
+            overflow: hidden;
+        }
+
+        #content {
+            text-align: center;
+            padding: 10px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center vertically */
+            align-items: center; /* Center horizontally */
+        }
+        h1 {
+            margin-top: 0;
+            margin-bottom: 0;
+            font-size: 6vh;
+            font-family: 'Clarendon Bold', sans-serif;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 0;
+            font-size: 4vh;
+            font-family: 'Clarendon Regular', sans-serif;
+        }
+
+        h3 {
+            margin-top: 0;
+            margin-bottom: 0;
+            font-size: 3vh;
+            font-family: 'Clarendon Regular', sans-serif;
+        }
+
+        .fade-in {
+            opacity: 1;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .fade-out {
+            opacity: 0;
+            pointer-events: none; /* Disable interaction on hidden content */
+            transition: opacity 0.5s ease-in-out;
+        }
+        .menu-container {
+            display: flex;
+            justify-content: center; /* Center buttons horizontally */
+            align-items: center; /* Center buttons vertically */
+            flex-direction: column;
+            text-align: center;
+        }
+        .menu-button {
+            background-color: {{ color_scheme['secondary_color'] }};
+            border: none;
+            width: 20vw;
+            padding: 1vh; /* Adjust padding as needed */
+            position: relative; /* Allow absolute positioning of the icon */
+            text-align: left;
+            text-decoration: none;
+            justify-content: left;
+            align-items: center;
+            display: inline-flex; /* Use inline-flex to allow width to adjust based on content */
+            margin: 1vh;
+            cursor: pointer;
+            border-radius: 2vh;
+            color: {{ color_scheme['background_color'] }};
+            white-space: normal;
+            overflow: hidden;
+            font-family: 'Clarendon Bold', sans-serif;
+            text-overflow: ellipsis;
+        }
+
+        .menu-button:hover {
+             background-color: {{ lowered_secondary_color }};
+                }
+
+        .button-text {
+        margin-left: 3vw;
+        font-size: 2vw; /* Subtract the width of the icon */
+        }
+
+        .logo img {
+            width: 40vh;
+            max-width: 60vw;
+            text-align: center;
+            height: auto;
+            margin-top: -10vh; /* Adjust margin to create space between logo and text */
+            margin-bottom: 4vh; /* Adjust margin to create space between logo and text */
+        }
+        #menu {
+            margin-top: 2vh;
+            text-align: center;
+        }
+        #settings {
+            position: absolute;
+            top: 4vh;
+            left: 4vw;
+        }
+        .icon-container {
+           padding: 10px; /* Adjust padding as needed */
+           border-radius: 50%; /* Make it circular */
+        }
+        .icon {
+            width: 8vh;
+            height: 8vh;
+            margin-bottom: 5px; /* Adjust the spacing between icon and text */
+            fill: red;
+        }
+
+        .gear-icon {
+            width: 5vh;
+            height: 5vh;
+            margin-bottom: 5px;
+            color: {{ color_scheme['secondary_color'] }};
+        }
+
+        .gear-icon:hover {
+            color: {{ lowered_secondary_color }};
+        }
+
+        /* Dynamically adjust font size based on button size */
+        @media (orientation: portrait) {
+            .menu-container {
+            display: flex;
+            justify-content: center; /* Center buttons horizontally */
+            align-items: center; /* Center buttons vertically */
+            text-align: center;
+        }
+            .popup {
+                    padding: 10px; /* Increase padding for smaller devices */
+                    font-size: 18px; /* Increase font size for smaller devices */
+                    transform: translate(-50%, -50%) scale(2.2); /* Adjust the scale as needed */
+                }
+        }
+
+        .menu-text {
+            font-size: 5vh;
+        }
+        .sub-text {
+            font-size: 3vh;
+            font-family: 'Clarendon Regular', sans-serif;
+        }
+
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #cccccc;
+            padding: 20px;
+            z-index: 1000;
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: popupAnimation 0.3s ease-in-out forwards; /* Animation */
+        }
+        .popup-title {
+            font-family: 'Roboto', sans-serif;
+            font-size: 24px; /* Larger font size for the title */
+            margin-bottom: 5px; /* Smaller margin below the title */
+        }
+
+        .popup-subtitle {
+            font-family: 'Roboto', sans-serif;
+            font-size: 18px; /* Slightly smaller font size for the subtitle */
+            margin-bottom: 10px;
+        }
+
+        .popup-text {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px; /* Same font size for the rest of the text */
+            margin-bottom: 10px;
+        }
+
+        .popup-button {
+            background-color: #8f7c59;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+                .menu-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+        /* Animation keyframes */
+        @keyframes popupAnimation {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8); /* Initial scale */
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1); /* Full size */
+                opacity: 1;
+            }
+        }
+
+        @media (pointer:none), (pointer:coarse) {
+                .menu-top {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                }
+                .menu-container {
+                    align-items: center;
+                    flex-direction: column;
+                }
+                .menu-button {
+                   width: 70vw;
+                }
+
+                .button-text {
+                    margin-left: 7vw;
+                    font-size: calc(19vw - 6vh); /* Subtract the width of the icon */
+                }
+                @media (orientation: landscape){
+                    .menu-button {
+                       height: 15vh;
+                       width: 15vw;
+                    }
+                    .button-text {
+                        margin-left: 0vw;
+                        font-size: 2vw;
+                    }
+                    .menu-text {
+                        font-size: 3vw;
+                    }
+                    .menu-container {
+                        flex-direction: row;
+                    }
+                    .gear-icon {
+                    width: 5vw;
+                    height: 5vw;
+                    }
+                }
+        }
+    </style>
+</head>
+<body>
+    <div id="content" class="fade-in">
+        <div class="menu-top">
+        <div class="menu-text">
+            <h1 style="color: {{ color_scheme['secondary_color'] }}; margin-bottom: 5vh;">Hello!</h1>
+            <h2 style="color: {{ color_scheme['primary_color'] }};">I'm Tendy,</h2>
+            <h3 style="color: {{ color_scheme['primary_color'] }};">the 17 Dix St. Bartender</h3>
+        </div>
+            <div class="logo">
+            <img src="/static/icons/martendy.svg" alt="Tendy Logo">
+        </div>
+        </div>
+        <div class="sub-text">What can I help you with?</div>
+<div id="menu" class="menu-container">
+    <a href="/ingredients" class="menu-button">
+        <div class="icon-container">
+
+            <img src="/static/icons/{{ 'bar_dark.svg' if color_scheme['dark'] == 'true' else 'bar.svg' }}" alt="Ingredients" class="icon">
+        </div>
+        <span class="button-text">Our Bar</span>
+    </a>
+    <a href="/mix" class="menu-button">
+        <div class="icon-container">
+            <img src="/static/icons/{{ 'mix_dark.svg' if color_scheme['dark'] == 'true' else 'mix.svg' }}" alt="Mix a Drink" class="icon">
+        </div>
+        <span class="button-text">Mix a Drink</span>
+    </a>
+    <a href="/saved-recipes" class="menu-button">
+        <div class="icon-container">
+            <img src="/static/icons/{{ 'recipes_dark.svg' if color_scheme['dark'] == 'true' else 'recipes.svg' }}" alt="Recipes" class="icon">
+        </div>
+        <span class="button-text">Saved Recipes</span>
+    </a>
+</div>
+
+        <div id="settings">
+            <a href="/settings" onclick="saveCurrentPage()">
+                <svg class="gear-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+                    <style>
+                        .st0{fill: currentcolor;}
+                        .st1{fill:none;stroke: currentcolor;stroke-width:133.0258;stroke-miterlimit:10;stroke-dasharray:125.2008,140.8509;}
+                    </style>
+                    <g>
+                        <g>
+                            <path class="st0" d="M499.77,226.26c73.12,0,141.86,28.47,193.56,80.18S773.5,426.88,773.5,500s-28.47,141.86-80.17,193.56
+                                s-120.44,80.17-193.56,80.17s-141.86-28.47-193.56-80.17S226.03,573.12,226.03,500s28.47-141.86,80.18-193.56
+                                S426.65,226.26,499.77,226.26 M499.77,93.24C275.12,93.24,93.01,275.35,93.01,500s182.11,406.76,406.76,406.76
+                                S906.53,724.65,906.53,500S724.41,93.24,499.77,93.24L499.77,93.24z"/>
+                        </g>
+                        <circle class="st1" cx="499.77" cy="500" r="427.27"/>
+                    </g>
+                </svg>
+            </a>
+        </div>
+    </div>
+    <div class="popup-overlay" id="popup-overlay"></div>
+    <div class="popup" id="popup">
+        <p class="popup-title">Welcome to <strong>Tendy</strong>,</p>
+        <p class="popup-subtitle">Your Virtual Bartending Assistant</p>
+        <p class="popup-text">We're thrilled to have you here as we create the perfect cocktail experience for you.</p>
+        <p class="popup-text">Please keep in mind that our site is currently in development.</p>
+        <p class="popup-text">If you encounter any issues or have suggestions, please click one of the buttons in settings.</p>
+        <p class="popup-text">Additionally, we use cookies to enhance your experience by storing your saved recipes.</p>
+        <button class="popup-button" onclick="closePopup()">Let's Get Crafting!</button>
+    </div>
+
+    <script>
+        // Function to check if the user has seen the popup before
+        function hasSeenPopup() {
+            const popupFlag = getCookie("popupFlag");
+            return popupFlag === "true";
+        }
+        // Function to display the popup
+        function showPopup() {
+            const popupOverlay = document.getElementById("popup-overlay");
+            const popup = document.getElementById("popup");
+
+            popupOverlay.style.display = "block";
+            popup.style.display = "block";
+
+            // Add animation class
+            popup.classList.add("popup-show");
+        }
+
+        // Function to close the popup and set the flag
+        function closePopup() {
+            const popupOverlay = document.getElementById("popup-overlay");
+            const popup = document.getElementById("popup");
+
+            // Remove animation class
+            popup.classList.remove("popup-show");
+
+            setTimeout(() => {
+                popupOverlay.style.display = "none";
+                popup.style.display = "none";
+            }, 300); // Wait for the animation to finish
+
+            // Set a cookie to remember that the user has seen the popup
+            document.cookie = "popupFlag=true; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/";
+        }
+
+        // Function to get a cookie by name
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
+
+        if (!hasSeenPopup()) {
+                showPopup();
+            }
+
+        // Add event listeners for navigation buttons
+        const content = document.querySelector('#content');
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const ingredientsButton = document.querySelector('a[href="/ingredients"]');
+            const otherButton = document.querySelector('a[href="/saved-recipes"]');
+            ingredientsButton.addEventListener('click', () => {
+                content.classList.add('fade-in');
+                content.classList.remove('fade-out');
+            });
+
+            otherButton.addEventListener('click', () => {
+                content.classList.add('fade-out');
+                content.classList.remove('fade-in');
+            });
+        });
+
+        function saveCurrentPage() {
+            // Store the current page's URL in session storage
+                console.log("Saving current page:", window.location.href);
+            // Store the current page's URL in session storage
+            sessionStorage.setItem("currentPage", window.location.href);
+
+        }
+
+    </script>
+</body>
+</html>

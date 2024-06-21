@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Set Appearance - Tendy</title>
+    <link rel="icon" type="image/png" href="/static/icons/tendy_logo.png">
+    <style>
+        <!-- Your CSS styles for the page -->
+
+        /* Style for the avatar selection section */
+        .avatar-selection {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .avatar-circle {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            background-color: #ccc;
+            border-radius: 50%;
+            margin: 10px;
+            cursor: pointer;
+        }
+
+        .avatar-circle img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 50%;
+        }
+
+        /* Style for the popup menu */
+        .popup-menu {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .popup-menu-item {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .popup-menu-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Style for the "Let's get going!" button */
+        .get-going-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #8f7c59;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .get-going-button:hover {
+            background-color: #6e5a3a;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <h1>Set Appearance</h1>
+        <!-- Avatar Selection Section -->
+        <div class="avatar-selection">
+            <div class="avatar-circle" id="selectedAvatar">
+                <!-- Display the selected avatar here -->
+                <img src="/static/icons/default_avatar.png" alt="Selected Avatar">
+            </div>
+            <!-- Avatar Popup Menu -->
+            <div class="popup-menu" id="avatarMenu">
+                <!-- List of avatar options -->
+                <div class="popup-menu-item" onclick="changeAvatar('avatar1.png')">Avatar 1</div>
+                <div class="popup-menu-item" onclick="changeAvatar('avatar2.png')">Avatar 2</div>
+                <!-- Add more avatar options as needed -->
+            </div>
+        </div>
+        <!-- "Let's get going!" Button -->
+        <button class="get-going-button" onclick="createUserAccount()">Let's get going!</button>
+    </div>
+    <!-- Include your JavaScript code here -->
+    <script>
+        // Function to change the selected avatar
+        function changeAvatar(avatarFilename) {
+            const selectedAvatar = document.getElementById('selectedAvatar');
+            selectedAvatar.innerHTML = `<img src="/static/avatars/${avatarFilename}" alt="Selected Avatar">`;
+
+            // Close the avatar menu
+            const avatarMenu = document.getElementById('avatarMenu');
+            avatarMenu.style.display = 'none';
+        }
+
+        // Function to show/hide the avatar menu
+        function toggleAvatarMenu() {
+            const avatarMenu = document.getElementById('avatarMenu');
+            if (avatarMenu.style.display === 'block') {
+                avatarMenu.style.display = 'none';
+            } else {
+                avatarMenu.style.display = 'block';
+            }
+        }
+
+        // Function to create the user account
+        function createUserAccount() {
+            // Get the selected avatar filename
+            const selectedAvatar = document.getElementById('selectedAvatar').querySelector('img').getAttribute('src');
+
+            // Retrieve the username and password from the previous page (create-account)
+            const username = sessionStorage.getItem('username'); // Assuming you stored the username in sessionStorage
+            const password = sessionStorage.getItem('password'); // Assuming you stored the password in sessionStorage
+
+            // You can now send the user account information (username, password, selectedAvatar) to your server for account creation.
+
+            // Redirect to the next page or perform any necessary actions here.
+            // For example, redirect to a "Welcome" page:
+            window.location.href = '/welcome'; // Change the URL as needed
+        }
+    </script>
+</body>
+</html>

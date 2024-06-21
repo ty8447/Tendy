@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Create Account - Tendy</title>
+    <link rel="icon" type="image/png" href="/static/icons/tendy_logo.png">
+    <style>
+        body {
+            background-color: {{ color_scheme['background_color'] }};
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .page-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 50px;
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .form-container {
+            margin-top: 20px;
+            width: 50%; /* Adjust the width of the form container */
+            margin: 0 auto; /* Center align the form container */
+            text-align: center; /* Center align the form elements */
+        }
+
+        .input-container {
+            margin-bottom: 15px;
+            width: 100%; /* Set the width to 100% to match the container's width */
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center items vertically */
+        }
+
+        .input-container.password {
+            margin-bottom: 15px;
+            width: 100%; /* Set the width to 100% to match the container's width */
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center items vertically */
+        }
+
+        .input-container label {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .input-container input {
+            width: 100%;
+            padding: 12px; /* Increased padding for larger fields */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px; /* Increased font size for better readability */
+            text-align: center;
+        }
+
+        .input-container.password input {
+            width: 100%;
+            padding: 10px; /* Increased padding for larger fields */
+            border: 1px solid transparent;
+            background: none
+            font-size: 16px; /* Increased font size for better readability */
+            text-align: center;
+        }
+
+        .input-container.password input:focus {
+            outline: none; /* Remove the default outline when the input is focused */
+        }
+
+        /* Adjust the positioning of the button within the form container */
+        .form-container .next-button {
+            width: 100%; /* Set the width to 100% to match the input fields */
+            padding: 10px;
+            background-color: #8f7c59;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .next-button:hover {
+            background-color: #6e5a3a;
+        }
+        .password-input-container {
+            display: flex;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            align-items: center;
+            background-color: white;
+            width: 100%;
+            transition: border-color 0.3s;
+}
+        .password-toggle {
+            background: none;
+            border: none;
+            border-radius: 5px; /* Initially rounded on all corners */
+            padding: 3px; /* Remove padding */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            width: 30px; /* Set a fixed width */
+        }
+
+        .password-toggle img {
+            width: 100%; /* Make sure the image fills the button */
+            height: 100%;
+        }
+
+        .input-container.empty {
+            background-color: #ffcccc; /* Light red background for empty fields */
+        }
+    </style>
+</head>
+<body>
+    <a href="/settings">
+                <img src="/static/icons/back.png" alt="Back" class="icon" style="padding: 10px;">
+    </a>
+    <div class="page-container">
+        <h1>Create Account</h1>
+        <div class="form-container">
+            <form>
+                <div class="input-container">
+                    <label for="firstName">First Name (optional):</label>
+                    <input type="text" id="firstName" name="firstName" placeholder="First Name">
+                </div>
+                <div class="input-container">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" placeholder="Enter your username">
+                </div>
+
+                <div class="input-container password" id="passwordContainer">
+                    <label for="password">Password:</label>
+                    <div class="password-input-container">
+                        <input type="password" id="password" name="password" placeholder="Enter your password">
+                        <span class="password-toggle" id="passwordToggle" onclick="togglePasswordVisibility('password', 'passwordToggle')">
+                            <img id="eyeIcon" src="/static/icons/eye_open_black.png" alt="Show Password">
+                        </span>
+                    </div>
+                </div>
+                <div class="input-container password" id="confirmPasswordContainer">
+                    <label for="confirmPassword">Confirm Password:</label>
+                    <div class="password-input-container">
+                        <input type="password" id="confirmPassword" name="password" placeholder="Confirm your password">
+                        <span class="password-toggle" id="confirmPasswordToggle" onclick="togglePasswordVisibility('confirmPassword', 'confirmPasswordToggle')">
+                            <img id="confirmEyeIcon" src="/static/icons/eye_open_black.png" alt="Show Password">
+                        </span>
+                    </div>
+                </div>
+
+                <button class="next-button" onclick="onNextButtonClick(event)">Next</button>
+            </form>
+        </div>
+        <div class="message-container">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul class="flashes">
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+    <script>
+        let isEmpty = false;
+    // Function to check the password field and show/hide the toggle button
+        function checkPasswordField() {
+            const passwordField = document.getElementById("password");
+            const confirmPasswordField = document.getElementById("confirmPassword");
+            const passwordToggle = document.getElementById("passwordToggle");
+            const confirmPasswordToggle = document.getElementById("confirmPasswordToggle");
+            if (passwordField.value) {
+                passwordToggle.style.display = "block";
+            } else {
+                passwordToggle.style.display = "none";
+            }
+
+            if (confirmPasswordField.value) {
+                confirmPasswordToggle.style.display = "block";
+            } else {
+                confirmPasswordToggle.style.display = "none";
+            }
+        }
+
+// Function to handle the password visibility toggle
+function togglePasswordVisibility(fieldId, toggleId) {
+    const passwordField = document.getElementById(fieldId);
+    const passwordToggle = document.getElementById(toggleId);
+    if (passwordToggle) { // Check if the element exists
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            passwordToggle.innerHTML = '<img src="/static/icons/eye_closed_black.png" alt="Hide Password" title="Hide Password">';
+        } else {
+            passwordField.type = 'password';
+            passwordToggle.innerHTML = '<img src="/static/icons/eye_open_black.png" alt="Show Password" title="Show Password">';
+        }
+    }
+}
+
+function validateForm() {
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const confirmPasswordInput = document.getElementById("confirmPassword");
+    let isValid = true;
+
+    // Check the username input
+    if (usernameInput && usernameInput.value.trim() === "") {
+        usernameInput.parentElement.classList.add("empty"); // Add empty class to highlight
+        isValid = false;
+        isEmpty = true;
+    } else {
+        usernameInput.parentElement.classList.remove("empty"); // Remove empty class
+        isEmpty = false;
+    }
+
+    // Check the password input
+    if (passwordInput && passwordInput.value.trim() === "") {
+        passwordInput.parentElement.classList.add("empty"); // Add empty class to highlight
+        isValid = false;
+        isEmpty = true;
+    } else {
+        passwordInput.parentElement.classList.remove("empty"); // Remove empty class
+        isEmpty = false;
+        // Check if the password meets the criteria
+        const password = passwordInput.value.trim();
+        if (password.length < 8 || !/[!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/.test(password)) {
+            passwordInput.parentElement.classList.add("invalid"); // Add invalid class to highlight
+            isValid = false;
+            alert("Password must be at least 8 characters long and contain at least one symbol (!@#$%^&*()_+{}[]:;<>,.?~-)");
+        } else {
+            passwordInput.parentElement.classList.remove("invalid"); // Remove invalid class
+        }
+    }
+
+    // Check the confirm password input
+    if (confirmPasswordInput && confirmPasswordInput.value.trim() === "") {
+        confirmPasswordInput.parentElement.classList.add("empty"); // Add empty class to highlight
+        isValid = false;
+        isEmpty = true;
+    } else {
+        confirmPasswordInput.parentElement.classList.remove("empty"); // Remove empty class
+        isEmpty = false;
+
+        // Check if the confirm password matches the password
+        if (passwordInput.value.trim() !== confirmPasswordInput.value.trim()) {
+            confirmPasswordInput.parentElement.classList.add("invalid"); // Add invalid class to highlight
+            isValid = false;
+            alert("Passwords do not match.");
+        } else {
+            confirmPasswordInput.parentElement.classList.remove("invalid"); // Remove invalid class
+        }
+    }
+
+    return isValid;
+}
+
+
+function checkInputFields() {
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const confirmPasswordInput = document.getElementById("confirmPassword");
+    const passwordContainer = document.getElementById("passwordContainer");
+    const confirmPasswordContainer = document.getElementById("confirmPasswordContainer");
+
+    // Check the username input
+    if (usernameInput) {
+        if (usernameInput.value.trim() === "") {
+            usernameInput.parentElement.classList.add("empty"); // Add empty class to highlight
+        } else {
+            usernameInput.parentElement.classList.remove("empty"); // Remove empty class
+        }
+    }
+
+    // Check the password input
+    if (passwordInput) {
+        if (passwordInput.value.trim() === "") {
+            passwordContainer.classList.add("empty"); // Add empty class to highlight
+        } else {
+            passwordContainer.classList.remove("empty"); // Remove empty class
+        }
+    }
+
+    // Check the confirm password input
+    if (confirmPasswordInput) {
+        if (confirmPasswordInput.value.trim() === "") {
+            confirmPasswordContainer.classList.add("empty"); // Add empty class to highlight
+        } else {
+            confirmPasswordContainer.classList.remove("empty"); // Remove empty class
+        }
+    }
+}
+
+    function onNextButtonClick(event) {
+        event.preventDefault();
+        checkInputFields();
+        if (validateForm()) {
+            const form = document.querySelector('form');
+            const formData = new FormData(form);
+            const formDataObject = {};
+            formData.forEach((value, key) => {
+                formDataObject[key] = value;
+            });
+            formDataObject['firstName'] = document.getElementById("firstName").value;
+            const jsonData = JSON.stringify(formDataObject);
+
+            // Send JSON data to the server using fetch or another method
+            fetch('/handle-registration', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: jsonData,
+            }).then(response => {
+                    if (response.status === 200) {
+                        // Redirect to /set-appearance on success
+                        window.location.href = "/set-appearance";
+                    } else if (response.status === 409) {
+                        // Handle the case where the username already exists (conflict)
+                        console.error('Username already exists.');
+                    } else {
+                        // Handle other error cases
+                        console.error('Create Account failed.');
+                    }
+                })
+        } else if (isEmpty) {
+            alert("Please fill in all required fields.");
+        }
+    }
+
+        document.getElementById("password").addEventListener("input", checkPasswordField);
+        document.getElementById("confirmPassword").addEventListener("input", checkPasswordField);
+        document.getElementById("username").addEventListener("input", checkInputFields);
+        document.getElementById("password").addEventListener("input", checkInputFields);
+        document.getElementById("confirmPassword").addEventListener("input", checkInputFields);
+
+        checkPasswordField();
+    </script>
+</body>
+</html>

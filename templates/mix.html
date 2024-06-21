@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recipes - Tendy</title>
+    <link rel="icon" type="image/png" href="/static/icons/tendy_logo.png">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html {
+        font-size: 16px; /* Set your preferred base font size here */
+        }
+        body {
+            background-color: {{ color_scheme['background_color'] }};
+            margin: 10px;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        .top-icons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        .icon {
+            width: 30px;
+            height: 40px;
+        }
+
+        .recipes-container {
+            flex-grow: 1;
+            overflow-y: scroll; /* Always show scrollbar (even if content doesn't overflow) */
+            margin-top: 20px;
+            padding-left: 10px;
+            margin-right: 15px;
+            max-height: calc(100vh - 200px);
+        }
+
+        /* Hide the default scrollbar */
+        .recipes-container::-webkit-scrollbar {
+            width: 0.5em; /* Set the width of the scrollbar */
+        }
+
+        /* Style the scrollbar track */
+        .recipes-container::-webkit-scrollbar-track {
+            background-color: #f8e4c9;
+        }
+
+        /* Style the scrollbar thumb */
+        .recipes-container::-webkit-scrollbar-thumb {
+            background-color: {{ color_scheme['secondary_color'] }};
+        }
+
+        /* Hide the scrollbar when not hovering over the container */
+        .recipes-container::-webkit-scrollbar-thumb:hover {
+            background-color: #f8e4c9;
+        }
+
+        .recipe-item {
+            font-size: 16px;
+            margin: 10px 10px;
+            padding: 15px;
+            position: relative;
+            background-color: {{ color_scheme['primary_color'] }};
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .search-bar {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+            width: 70%;
+        }
+
+        .add-recipe-button {
+            background-color: {{ color_scheme['secondary_color'] }};
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .add-recipe-button:hover {
+            background-color: #ad956d;
+        }
+
+        .filter-button {
+            background-color: {{ color_scheme['secondary_color'] }};
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .filter-button:hover {
+            background-color: #ad956d;
+        }
+
+        .glass-icon {
+            width: 50px; /* Adjust the size as needed */
+            height: auto;
+            margin-right: 10px; /* Add spacing between icon and recipe details */
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+            z-index: 999; /* Place the overlay above other content */
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .glassdetails {
+            display: flex;
+        }
+
+        .clicked-button{
+        background-color:red;
+        }
+
+        .filter-menu {
+            background-color: white; /* Add a white background */
+            padding: 20px; /* Add some padding to the filter menu */
+            border-radius: 10px; /* Add rounded corners */
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3); /* Add a shadow effect */
+            display: none; /* Initially hide the filter menu */
+            z-index: 1000; /* Place the filter menu above the overlay */
+        }
+
+        .recipe-name{
+            display: flex; /* Change to flex display */
+            align-items: center; /* Align items vertically */
+            margin-right: 5px;
+        }
+
+        .add-to-saved {
+            margin-left: 20px; /* Push the "+" button to the right */
+            font-size: 20px; /* Increase the font size for better visibility */
+            background-color: #cbcbcb; /* Remove background color */
+            border: none; /* Remove border */
+            border-radius: 20%; /* Make the button round */
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* Add styles for filter menu buttons */
+        .filter-menu button {
+            background-color: {{ color_scheme['secondary_color'] }};
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+
+        /* Style the Apply button on hover */
+        .filter-menu button:hover {
+            background-color: #ad956d;
+        }
+
+        .popup-menu {
+            z-index: 10000; /* Increase z-index value */
+
+        }
+
+        /* Style the Cancel button differently */
+        .filter-menu #cancel-button {
+            background-color: #ccc;
+            color: black;
+        }
+
+        /* Style the Cancel button on hover */
+        .filter-menu #cancel-button:hover {
+            background-color: #999;
+        }
+
+        .filter-menu label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .recipe-details-wrapper .recipe-details {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .recipe-details-wrapper.show .recipe-details {
+            display: block;
+            opacity: 1;
+        }
+
+    @media (max-width: 1440px) {
+        html {
+            font-size: 18px; /* Increase base font size */
+        }
+
+        .recipe-name h3 {
+            font-size: 1.7em; /* Increase relative font size */
+            display: flex; /* Change to flex display */
+            align-items: center; /* Align items vertically */
+        }
+    }
+
+    .recipe-ingredients ul {
+        margin-left: 20px; /* Add left margin for indentation */
+        padding-left: 0; /* Remove default padding for the list */
+        list-style: disc; /* Remove default list-style (bullet point) */
+    }
+
+    .recipe-ingredients ul li::before {
+        content: '\2022'; /* Unicode character for bullet point */
+        color: {{ color_scheme['secondary_color'] }};
+        display: inline-block;
+        width: 1em; /* Adjust the width as needed */
+        margin-left: -1em; /* Shift the bullet points to the left */
+    }
+
+    /* Style the horizontal line */
+    .recipe-item hr.name-divider {
+        display: none; /* Initially hide the horizontal line */
+        width: calc(30% - 20px); /* Adjust the width as needed (subtract the padding of the container) */
+        height: 1px; /* Set the height */
+        background-color: black; /* Set the line color to black */
+        margin: 0; /* Reset margin */
+        border: none; /* Remove borders */
+    }
+
+    .ingredient-tags {
+        display: flex;
+        flex-wrap: wrap;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Adjust column width as needed */
+        max-width: 200px; /* Set your desired maximum width here */
+    }
+
+    .ingredient-bubble {
+        display: inline-block;
+        padding: 5px;
+        border-radius: 20px;
+        color: white; /* You can set the text color */
+        margin: 2px; /* Add some spacing between bubbles if needed */
+        text-align: center;
+        border: 2px solid transparent; /* Default border color */
+    }
+
+    .recipe-item h3 {
+        font-family: 'Caveat', cursive;
+    }
+    .like-button {
+        margin-left: 5px;
+        width: 20px;
+        height: 20px;
+        align-items: right;
+    }
+
+    .rating {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0px 5px 0px 5px;
+    }
+
+    .rating-circle {
+        display: flex;
+        width: 8vw;
+        height: 8vw;
+        max-width: 50px;
+    }
+
+    .rating-segment {
+        border-radius: 0;
+        stroke: #3f3f3f;
+    }
+
+    .rating-number {
+        font-size: 1vw;
+    }
+
+    #ratingsvg #bar {
+    stroke: #FFF;
+    }
+
+
+    </style>
+</head>
+<body>
+    <div id="content" class="fade-in {% if page != 'recipes' %}fade-out{% endif %}">
+        <div class="top-icons">
+            <a href="/">
+                <img src="/static/icons/home.png" alt="Home" class="icon" style="padding: 10px;">
+            </a>
+            <a href="/settings" onclick="saveCurrentPage()">
+                <img src="/static/icons/settings.svg" alt="Settings" class="icon" style="width: 60px; height: 60px; padding: 10px; margin-right: 30px;">
+            </a>
+        </div>
+        <div class="search-container">
+            <input type="text" class="search-bar" placeholder="Search...">
+            <button class="filter-button" id="filter-button">Filter</button>
+            <a href="/add-unlisted-recipe">
+                <button class="add-recipe-button">Add Unlisted</button>
+            </a>
+        </div>
+        <div class="recipes-container">
+    {% if current_recipes %}
+    {% for recipe in current_recipes %}
+        <div class="recipe-item">
+            <div class="recipe-name">
+                <h5>
+                    <div class="ingredient-tags">
+                    {% if recipe.ingredient_types is not none %}
+
+                            {% for ingredient_type in recipe.ingredient_types.split(',') %}
+                                <div class="ingredient-bubble" {% for liquor_types in liquor_type %}
+                                    {% if liquor_types.name == ingredient_type.strip() %}
+                                        style="background-color: {% if not dark %}#{{ liquor_types.color }} {% else %} transparent {% endif %}; border: 2px solid {% if not dark %} transparent {% else %} #{{ liquor_types.color }} {% endif %};"
+                                    {% endif %}
+                                {% endfor %}>
+                                    {{ ingredient_type.strip() }}
+                                </div>
+                        {% endfor %}
+                    {% endif %}
+                    </div>
+                </h5>
+                <h3>{{ recipe.name }}</h3>
+                {% if recipe.rating %}
+                <div class="rating" id="ratingsvg">
+                    <svg class="rating-circle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                        <circle class="rating-segment" cx="50" cy="50" r="40" stroke="#FFF" stroke-width="6" fill="none" stroke-dasharray="40 10" stroke-dashoffset="5" />
+                        <circle id="bar" cx="50" cy="50" r="40" fill="none" stroke="FF9F1E" stroke-width="6" stroke-dasharray="0" stroke-dashoffset="56"></circle>
+                        <text id="ratingnum" x="50" y="55" text-anchor="middle" alignment-baseline="middle" font-size="25" fill="#000">{{ recipe.rating }}</text> <!-- Replace with dynamic rating value -->
+                    </svg>
+                </div>
+                {% endif %}
+                <img class="like-button" src="static/icons/Liked_Unclicked.svg" data-clicked-src="static/icons/Liked_Clicked.svg" data-liked="false">
+
+            </div>
+            <hr class="name-divider">
+            <br>
+            <div class="recipe-details-wrapper">
+            <div class="recipe-details">
+                    <div class="glassdetails">
+                        <img src="/static/icons/{{ recipe.glass }}.svg" alt="{{ recipe.glass }}" class="glass-icon">
+                        <div class="recipe-ingredients">
+                            {% if recipe.description is not none and recipe.description != '' %}
+                            <strong>Description:</strong> {{ recipe.description }}<br>
+                            {% endif %}
+                            <strong>Ingredients:</strong><br>
+                                <ul>
+                            {% for ingredient in recipe.ingredients %}
+                                    <li>{{ ingredient.name }}<br></li>
+                            {% endfor %}
+                                </ul>
+                        </div>
+                </div>
+                <br>
+                <strong>Portions:</strong> {{ recipe.portions }}<br>
+                <strong>Instructions:</strong><br>
+                {{ recipe.instructions }}<br>
+                <strong>Served in:</strong> {{ recipe.glass }}
+            </div>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <h1 class="no-recipes-message" style="display: block; font-size: 20px; text-align: center; margin-top: 20px;">There are no recipes available!</h1>
+{% endif %}
+</div>
+    </div>
+    <script>
+        let selectedAvailability = 'all';
+        const recipeItems = document.querySelectorAll('.recipe-item');
+        let originalPopup;
+        const searchInput = document.querySelector('.search-bar');
+        const filterButton = document.getElementById('filter-button');
+        const drinkTypes = ['Cocktail', 'Mocktail', 'Juice', 'Smoothie', 'Soda', 'Other'];
+        const drinkLiquorTypes = ['Beer', 'Brandy', 'Gin', 'Rum', 'Tequila', 'Vermouth', 'Vodka', 'Whiskey', 'Wine',
+                              'Other'];
+        const drinkAvailability = ['All', 'Only Available Items'];
+        let selectedDrinkTypes = [];
+        let selectedDrinkLiquorTypes = [];
+        const overlay = createOverlay();
+        let filterMenu;
+        searchInput.addEventListener('input', () => {
+            applyFilter();
+        });
+
+        recipeItems.forEach(item => {
+          const heartButton = item.querySelector('.like-button');
+          heartButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleLikeButton(heartButton);
+          });
+
+          // Find the 'ratingnum' element within the 'ratingsvg' container
+          const ratingElement = item.querySelector('#ratingsvg #ratingnum');
+
+          if (ratingElement) {
+            const rating = parseFloat(ratingElement.textContent);
+            if (!isNaN(rating)) {
+
+              const $circle = item.querySelector('#ratingsvg #bar'); // Adjust the selectors accordingly
+              const r = $circle.getAttribute('r');
+              const c = Math.PI * (r * 2);
+              if (rating < 1) {
+                rating = 1;
+              } else if (rating > 5) {
+                rating = 5;
+              }
+              wholeRating = Math.floor(rating);
+              wholeCount = wholeRating * 40.1327412287;
+              if (wholeRating % 1 == 0){
+              wholeGaps = (wholeRating - 1) * 10.1327412287;
+              } else {
+              wholeGaps = wholeRating * 10.1327412287;
+              }
+              if (rating == 5){
+              wholeGaps = wholeRating * 10.1327412287;
+              }
+              decimalCount = (rating - wholeRating) * 40.1327412287;
+              val = wholeCount + wholeGaps + decimalCount;
+              $circle.style.strokeDasharray = `${val} ${c - val}`;
+            }
+          }
+
+          item.addEventListener('click', () => {
+            const detailsWrapper = item.querySelector('.recipe-details-wrapper');
+            const recipeDetails = detailsWrapper.querySelector('.recipe-details');
+            const hr = item.querySelector('.name-divider'); // Select the hr element
+            detailsWrapper.classList.toggle('show');
+            hr.style.display = detailsWrapper.classList.contains('show') ? 'block' : 'none';
+          });
+        });
+
+
+        function handleOverlayClick() {
+            overlay.style.display = 'none';
+            filterMenu.style.display = 'none';
+
+            // Remove the click event listener to prevent multiple listeners
+            overlay.removeEventListener('click', handleOverlayClick);
+        }
+
+        filterButton.addEventListener('click', () => {
+            overlay.style.display = 'block';
+            filterMenu = createFilterMenu();
+            if (originalPopup) {
+                document.body.removeChild(originalPopup);
+            }
+            originalPopup = filterMenu;
+
+            // Append the filter menu to the body
+            document.body.appendChild(filterMenu);
+
+            // Add a click event listener to the overlay to close the filter menu
+            overlay.addEventListener('click', handleOverlayClick); // Use the named function here
+            const availableButtons = document.querySelectorAll('.available');
+                if (selectedAvailability == 'all'){
+                    availableButtons.forEach(availableButton => {
+                         if (availableButton.textContent == 'All') {
+                            availableButton.classList.add("clicked-button");
+                         }
+                    });
+                } else {
+                    availableButtons.forEach(availableButton => {
+                         if (availableButton.textContent !== 'All') {
+                            availableButton.classList.add("clicked-button");
+                         }
+                    });
+
+                }
+        });
+
+const savedRecipesCookie = getCookie('saved-recipes-list');
+let savedRecipes = [];
+document.addEventListener('DOMContentLoaded', () => {
+        const savedRecipesCookieValue = getCookie('saved-recipes-list');
+
+        if (savedRecipesCookieValue) {
+            try {
+                savedRecipes = JSON.parse(savedRecipesCookieValue);
+                // Set the liked state for recipes based on savedRecipes
+                    const likeButtons = document.querySelectorAll('.like-button');
+
+                    likeButtons.forEach((button) => {
+                        const recipeName = button.parentNode.querySelector('h3').textContent;
+                        if (savedRecipes.includes(recipeName)) {
+                            button.setAttribute('data-liked', 'true');
+                            button.src = button.getAttribute('data-clicked-src');
+                        }
+                    });
+            } catch (error) {
+                // Handle the error, e.g., log it or set savedRecipes to an empty array
+                console.error('Error parsing saved recipes:', error);
+                savedRecipes = [];
+
+            }
+        }
+});
+
+function applyFilter() {
+    recipeItems.forEach(item => {
+        const recipeType = item.getAttribute('data-type');
+        //const isAvailable = item.getAttribute('data-availability') === 'true';
+        const searchText = searchInput.value.toLowerCase();
+        const recipeName = item.querySelector('.recipe-name').textContent.toLowerCase();
+        // Check if any of the selectedDrinkTypes match any of the ingredient tags
+        const ingredientTags = item.querySelectorAll('.ingredient-bubble');
+        let ingredientTagMatch = false;
+
+        for (const ingredientTag of ingredientTags) {
+            const ingredientTagName = ingredientTag.textContent.trim().toLowerCase();
+            const capitalizedIngredientTagName = ingredientTagName.charAt(0).toUpperCase() + ingredientTagName.slice(1); // Capitalize only the first letter
+
+            if (selectedDrinkLiquorTypes.includes(capitalizedIngredientTagName)) {
+                ingredientTagMatch = true;
+                break;
+            }
+        }
+        if (searchText == ""){
+            if (ingredientTagMatch && (ingredientTagMatch || recipeName.includes(searchText))){
+            item.style.display = 'block';
+            } else if (selectedDrinkLiquorTypes.length === 0){
+            item.style.display = 'block';
+            } else {
+            item.style.display = 'none';
+            }
+        } else {
+            if (recipeName.includes(searchText) && ingredientTagMatch && (ingredientTagMatch || recipeName.includes(searchText))) {
+                item.style.display = 'block';
+            } else if (selectedDrinkLiquorTypes.length === 0 && (ingredientTagMatch || recipeName.includes(searchText))){
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        }
+    });
+}
+
+
+function toggleLikeButton(button) {
+                const isLiked = button.getAttribute('data-liked') === 'true';
+                const newLikedState = !isLiked;
+                button.setAttribute('data-liked', newLikedState.toString());
+
+                // Update the image source based on the new state
+                const newSrc = newLikedState
+                    ? button.getAttribute('data-clicked-src')
+                    : 'static/icons/Liked_Unclicked.svg';
+
+                button.src = newSrc;
+
+                // Handle any other logic related to liking/unliking the recipe here
+                const recipeName = button.parentNode.querySelector('h3').textContent;
+
+                // Handle any other logic related to liking/unliking the recipe here
+                // For example, you can save the liked recipes to cookies here
+                if (newLikedState) {
+                    savedRecipes.push(recipeName);
+                }
+                 else {
+                    // Remove the recipe from the saved recipes list
+                    const recipeIndex = savedRecipes.indexOf(recipeName);
+                    if (recipeIndex !== -1) {
+                        savedRecipes.splice(recipeIndex, 1);
+                    }
+                 }
+                 // Save the updated saved recipes list to cookies
+                setCookie('saved-recipes-list', JSON.stringify(savedRecipes));
+              }
+
+function createOverlay() {
+                const overlay = document.createElement('div');
+                overlay.classList.add('overlay');
+                overlay.style.display = 'none';
+                document.body.appendChild(overlay);
+                return overlay;
+            }
+
+        function setCookie(name, value) {
+        document.cookie = `${name}=${value};path=/`;
+	    }
+    function createFilterMenu() {
+                const filterMenu = document.createElement('div');
+                filterMenu.classList.add('popup-menu');
+                filterMenu.style.position = 'absolute';
+                filterMenu.style.top = '50%';
+                filterMenu.style.left = '50%';
+                filterMenu.style.transform = 'translate(-50%, -50%)';
+                filterMenu.style.backgroundColor = '#555';
+                filterMenu.style.padding = '20px';
+                filterMenu.style.borderRadius = '10px';
+                filterMenu.style.boxShadow = '0px 0px 10px rgba(0, 0, 0, 0.3)';
+
+                // "Done" Button
+                const doneButton = document.createElement('button');
+                doneButton.textContent = 'Done';
+                doneButton.addEventListener('click', () => {
+                    // Hide the overlay and filter menu
+                    overlay.style.display = 'none';
+                    filterMenu.style.display = 'none';
+                });
+                doneButton.style.marginTop = '20px'; // Add some space below sections
+                filterMenu.appendChild(doneButton);
+
+                const headerText = document.createElement('div');
+                headerText.textContent = 'Select a recipe to add:';
+                headerText.style.fontWeight = 'bold';
+                filterMenu.appendChild(headerText);
+
+                // "Types" Section
+                const typesSection = document.createElement('div');
+                typesSection.style.marginTop = '20px'; // Add some space between sections
+
+                // Section Header
+                const typesHeader = document.createElement('div');
+                typesHeader.textContent = 'Types:';
+                typesHeader.style.fontWeight = 'bold';
+                typesSection.appendChild(typesHeader);
+
+                // Create buttons for each drink type in the "Types" section
+                drinkTypes.forEach(drinkType => {
+                    const button = document.createElement('button');
+                    button.textContent = drinkType;
+                    button.addEventListener('click', () => {
+                        // Check if the button's name (drinkType) is already in an array
+                        const index = selectedDrinkTypes.indexOf(drinkType);
+
+                        if (index !== -1) {
+                            // If it's already in the array, remove it
+                            selectedDrinkTypes.splice(index, 1);
+                        } else {
+                            // If it's not in the array, add it
+                            selectedDrinkTypes.push(drinkType);
+                        }
+                        applyFilter();
+                    });
+                    typesSection.appendChild(button);
+                });
+
+                // "Contains" Section
+                const containsSection = document.createElement('div');
+                containsSection.style.marginTop = '20px'; // Add some space between sections
+
+                // Section Header
+                const containsHeader = document.createElement('div');
+                containsHeader.textContent = 'Contains:';
+                containsHeader.style.fontWeight = 'bold';
+                containsSection.appendChild(containsHeader);
+
+                // Create buttons for each drink type in the "Contains" section
+                drinkLiquorTypes.forEach(drinkLiquorType => {
+                    const button = document.createElement('button');
+                    button.textContent = drinkLiquorType;
+                    button.addEventListener('click', () => {
+                        // Check if the button's name (drinkLiquorType) is already in an array
+                        const index = selectedDrinkLiquorTypes.indexOf(drinkLiquorType);
+
+                        if (index !== -1) {
+                            // If it's already in the array, remove it
+                            selectedDrinkLiquorTypes.splice(index, 1);
+                            button.classList.remove("clicked-button");
+                        } else {
+                            // If it's not in the array, add it
+                            selectedDrinkLiquorTypes.push(drinkLiquorType);
+                            button.classList.add("clicked-button");
+                        }
+
+                        applyFilter();
+                    });
+                    containsSection.appendChild(button);
+                });
+
+                // "Availability" Section
+                const availabilitySection = document.createElement('div');
+                availabilitySection.style.marginTop = '20px'; // Add some space between sections
+
+                // Section Header
+                const availabilityHeader = document.createElement('div');
+                availabilityHeader.textContent = 'Availability:';
+                availabilityHeader.style.fontWeight = 'bold';
+                availabilitySection.appendChild(availabilityHeader);
+
+                // Create buttons for availability options
+                drinkAvailability.forEach(drinkAvailability => {
+                    const button = document.createElement('button');
+                    button.textContent = drinkAvailability;
+                    button.classList.add("available");
+                    button.addEventListener('click', () => {
+                        const availableButtons = document.querySelectorAll('.available');
+
+                        if (button.textContent === 'All') {
+                            selectedAvailability = 'all';
+                            applyFilter();
+                            button.classList.add("clicked-button");
+                            availableButtons.forEach(availableButton => {
+                                if (availableButton.textContent !== 'All') {
+                                    availableButton.classList.remove("clicked-button");
+                                }
+                            });
+                        } else {
+                            selectedAvailability = 'available';
+                            applyFilter();
+                            button.classList.add("clicked-button");
+                            availableButtons.forEach(availableButton => {
+                                if (availableButton.textContent !== 'Only Available Items') {
+                                    availableButton.classList.remove("clicked-button");
+                                }
+                            });
+                        }
+
+                        applyFilter();
+                    });
+                    availabilitySection.appendChild(button);
+                });
+
+                // Append the sections to the filter menu
+                filterMenu.appendChild(typesSection);
+                filterMenu.appendChild(containsSection);
+                filterMenu.appendChild(availabilitySection);
+
+                return filterMenu; // Return the created filter menu
+            }
+    function setCookie(name, value) {
+            document.cookie = `${name}=${value}; path=/`;
+        }
+    function getCookie(name) {
+        const cookies = document.cookie.split('; ');
+        for (const cookie of cookies) {
+            const [cookieName, cookieValue] = cookie.split('=');
+            if (cookieName === name) {
+                return decodeURIComponent(cookieValue); // Decode the cookie value
+            }
+        }
+        return null;
+        }
+
+        // Function to get a cookie by name
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
+
+        function saveCurrentPage() {
+            // Store the current page's URL in session storage
+            sessionStorage.setItem("currentPage", window.location.href);
+        }
+        overlay.removeEventListener('click', handleOverlayClick);
+    </script>
+</body>
+</html>
